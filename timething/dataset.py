@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pandas as pd  # type: ignore
 import torch
-import torchaudio  # type: ignore
 import torch.nn.utils.rnn as rnn
+import torchaudio  # type: ignore
 from torch.utils.data import Dataset
 
 

@@ -6,9 +6,10 @@ channels:
 
 dependencies:
   - python=3.8
+  - click
+  - datasets
   - numpy
   - pytorch
+  - tokenizers=0.10.1
   - torchaudio
   - transformers=4.4.2
-  - tokenizers=0.10.1
-  - datasets

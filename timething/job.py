@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import torch
+from torch.utils.data import DataLoader
 from tqdm import tqdm  # type: ignore
 
 from timething import align  # type: ignore
@@ -12,7 +14,11 @@ class Job:
     """
 
     def __init__(
-        self, cfg: align.Config, loader, device: str, output_path: Path
+        self,
+        cfg: align.Config,
+        loader: DataLoader,
+        device: torch.device,
+        output_path: Path,
     ):
         self.cfg = cfg
         self.loader = loader
