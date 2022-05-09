@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+# Install conda into notebook
+
+set -eou pipefail
+
+pip install ipython jupyter ipykernel
+python -m ipykernel install --user --name=timething

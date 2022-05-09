@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# try bin/test --pdb
+
+set -e
+
+mypy .
+bin/lint
+python -m pytest -m "not integration" --disable-warnings "$@"

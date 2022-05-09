@@ -1,0 +1,14 @@
+name: timething
+
+channels:
+  - pytorch
+  - huggingface
+
+dependencies:
+  - python=3.9
+  - numpy
+  - pytorch
+  - torchaudio
+  - transformers=4.4.2
+  - tokenizers=0.10.1
+  - datasets

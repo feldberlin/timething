@@ -1,0 +1,9 @@
+#!/bin/bash
+
+flake8 \
+  --ignore=E203 \
+  --count \
+  --max-complexity=17 \
+  --max-line-length=80 \
+  --statistics
+

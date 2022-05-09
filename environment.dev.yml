@@ -1,0 +1,11 @@
+name: timething
+
+dependencies:
+  - black
+  - flake8
+  - ipykernel
+  - ipython
+  - isort
+  - matplotlib
+  - mypy
+  - pytest

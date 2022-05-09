@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+#
+
+set -eou pipefail
+
+conda env create --file environment.yml
+conda env update -f environment.dev.yml
