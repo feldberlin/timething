@@ -26,4 +26,5 @@ jobs:
         bin/install
     - name: Test timething
       run: |
+        conda activate timething
         bin/test
