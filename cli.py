@@ -8,7 +8,7 @@ from timething import job, align, utils  # type: ignore
 
 
 @click.command()
-@click.option("--model",  required=True,
+@click.option("--model", required=True,
               help="Key in timething/models.yaml.")
 @click.option("--metadata", required=True, type=click.Path(),
               help="Full path to metadata csv.")
