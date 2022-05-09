@@ -1,3 +1,5 @@
+[![Build](https://github.com/feldberlin/timething/workflows/CI/badge.svg)](https://github.com/feldberlin/timething/actions)
+
 # Timething
 
 Timething is a library for aligning text transcripts with audio. You provide
