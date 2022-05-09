@@ -17,7 +17,7 @@ as well as in this [paper](https://arxiv.org/abs/2007.09127).
 
 There are many mature libraries that can already do forced alignment like
 Timething, e.g. the Montreal forced aligner or Aeneas. One list of tools is
-maintained [here](https://github.com/pettarin/forced-alignment-tools)
+maintained [here](https://github.com/pettarin/forced-alignment-tools).
 
 ## Thanks
 

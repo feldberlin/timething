@@ -21,6 +21,9 @@ class Config:
     # a hash or tag to pin the model to
     hugging_pin: str
 
+    # sampling rate expected from this model
+    sampling_rate: int
+
 
 @dataclass
 class Segment:

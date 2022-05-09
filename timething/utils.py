@@ -12,11 +12,7 @@ def load_config(model: str) -> align.Config:
     """
 
     with open(MODELS_YAML, "r") as f:
-        try:
-            cfg = yaml.safe_load(f)
-        except yaml.YAMLError as exc:
-            print(exc)
-
+        cfg = yaml.safe_load(f)
         return align.Config(
             cfg[model]["model"], cfg[model]["pin"], cfg[model]["sampling_rate"]
         )
