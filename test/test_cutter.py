@@ -1,23 +1,29 @@
-from timething import align, cutter  # type: ignore
-
 import helper
+
+from timething import align, cutter  # type: ignore
 
 
 def test_pause_durations():
-    alignment = helper.alignment(30, [
-        align.Segment("hello", 2, 8, 1.0),
-        align.Segment("world", 11, 20, 1.0)
-    ])
+    alignment = helper.alignment(
+        30,
+        [
+            align.Segment("hello", 2, 8, 1.0),
+            align.Segment("world", 11, 20, 1.0),
+        ],
+    )
 
     pauses = cutter.pause_durations(alignment)
     assert pauses == [3, 10]
 
 
 def test_no_cut():
-    alignment = helper.alignment(30, [
-        align.Segment("hello", 2, 8, 1.0),
-        align.Segment("world", 11, 20, 1.0)
-    ])
+    alignment = helper.alignment(
+        30,
+        [
+            align.Segment("hello", 2, 8, 1.0),
+            align.Segment("world", 11, 20, 1.0),
+        ],
+    )
 
     cuts = cutter.pause_cuts(alignment, cut_threshold=100)
     assert len(cuts) == 1
@@ -27,10 +33,13 @@ def test_no_cut():
 
 
 def test_one_cut():
-    alignment = helper.alignment(30, [
-        align.Segment("hello", 2, 8, 1.0),
-        align.Segment("world", 15, 30, 1.0)
-    ])
+    alignment = helper.alignment(
+        30,
+        [
+            align.Segment("hello", 2, 8, 1.0),
+            align.Segment("world", 15, 30, 1.0),
+        ],
+    )
 
     cuts = cutter.pause_cuts(alignment, cut_threshold=5)
     assert len(cuts) == 2

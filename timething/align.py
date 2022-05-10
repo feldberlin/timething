@@ -152,7 +152,7 @@ class Aligner:
                 word_segments,
                 n_model_frames,
                 n_audio_samples,
-                self.sr
+                self.sr,
             )
 
             alignments.append(alignment)

@@ -22,9 +22,7 @@ def main(model: str, metadata: str, alignments_dir: str, n_workers: int):
     cfg = utils.load_config(model)
 
     # construct the dataset
-    ds = dataset.SpeechDataset(
-        Path(metadata), cfg.sampling_rate, clean_text_fn=dataset.clean_text_fn
-    )
+    ds = dataset.SpeechDataset(Path(metadata), cfg.sampling_rate)
 
     # load from the dataset
     loader = DataLoader(
@@ -35,11 +33,14 @@ def main(model: str, metadata: str, alignments_dir: str, n_workers: int):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # construct and run the job
-    print("constructing aligment job.")
+    print("setting up aligment job...")
     j = job.Job(cfg, loader, device, Path(alignments_dir))
 
+    # construct the generic model text cleaner
+    ds.clean_text_fn = dataset.clean_text_fn(j.aligner.vocab())
+
     # go
-    print("starting aligment job.")
+    print("starting aligment job...")
     j.run()
 
 

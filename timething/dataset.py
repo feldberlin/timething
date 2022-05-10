@@ -96,18 +96,30 @@ class SpeechDataset(Dataset):
         return records
 
 
-def clean_text_fn(text: str) -> str:
+def clean_text_fn(vocab: typing.List[str]):
     """
-    A very basic text cleaner
+    A generic text cleaner. Language specific cleaners needed.
     """
 
-    text = text.lower()
-    text = re.sub(r"\W+", " ", text)
-    text = re.sub(" +", " ", text)
-    text = text.replace("ß", "ss")
-    text = text.replace(" ", "|")
-    text = text.strip()
-    return text
+    allowed_chars = "".join(sorted({c for c in vocab if len(c) == 1}))
+    allowed_chars_re = re.compile(f"[^{re.escape(allowed_chars)}]+")
+
+    def fn(text: str):
+
+        # assumes a lower case only text model.
+        text = text.lower()
+
+        # replace all non-vocabulary characters with space
+        text = re.sub(allowed_chars_re, " ", text)
+
+        # collapse repeating spaces and replace with pipe
+        text = re.sub(" +", " ", text)
+        text = text.strip()
+        text = text.replace(" ", "|")
+
+        return text
+
+    return fn
 
 
 def collate_fn(recordings: typing.List[Recording]):

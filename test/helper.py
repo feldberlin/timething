@@ -18,5 +18,5 @@ def alignment(n_model_frames: int, word_segments: typing.List[align.Segment]):
         word_segments=word_segments,
         n_model_frames=n_model_frames,
         n_audio_samples=100,
-        sampling_rate=16000
+        sampling_rate=16000,
     )
