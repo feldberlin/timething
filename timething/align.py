@@ -93,9 +93,11 @@ class Alignment:
     sampling_rate: int
 
     def model_frames_to_fraction(self, n_frames):
+        "Returns the fraction of the padded example at n_frames"
         return n_frames / self.n_model_frames
 
     def model_frames_to_seconds(self, n_frames):
+        "Returns the absolute offset in seconds at n_frames"
         fraction = self.model_frames_to_fraction(n_frames)
         return fraction * self.n_audio_samples / self.sampling_rate
 

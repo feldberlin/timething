@@ -109,6 +109,9 @@ def clean_text_fn(vocab: typing.List[str]):
         # assumes a lower case only text model.
         text = text.lower()
 
+        # XXX(rk): pull this out
+        text = text.replace("ß", "ss")
+
         # replace all non-vocabulary characters with space
         text = re.sub(allowed_chars_re, " ", text)
 
