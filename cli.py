@@ -1,22 +1,45 @@
 from pathlib import Path
 
-from torch.utils.data import DataLoader
 import click
 import torch
+from torch.utils.data import DataLoader
 
-from timething import job, dataset, utils  # type: ignore
+from timething import dataset, job, utils  # type: ignore
 
 
 @click.command()
-@click.option("--model", required=True,
-              help="Key in timething/models.yaml.")
-@click.option("--metadata", required=True, type=click.Path(),
-              help="Full path to metadata csv.")
-@click.option("--alignments-dir", required=True, type=click.Path(),
-              help="Dir to write results to.")
-@click.option("--n-workers", required=True, type=int,
-              help="Number of worker processes to use", )
-def main(model: str, metadata: str, alignments_dir: str, n_workers: int):
+@click.option("--model", required=True, help="Key in timething/models.yaml.")
+@click.option(
+    "--metadata",
+    required=True,
+    type=click.Path(),
+    help="Full path to metadata csv.",
+)
+@click.option(
+    "--alignments-dir",
+    required=True,
+    type=click.Path(),
+    help="Dir to write results to.",
+)
+@click.option(
+    "--batch-size",
+    required=True,
+    type=int,
+    help="Number of examples per batch",
+)
+@click.option(
+    "--n-workers",
+    required=True,
+    type=int,
+    help="Number of worker processes to use",
+)
+def main(
+    model: str,
+    metadata: str,
+    alignments_dir: str,
+    batch_size: int,
+    n_workers: int,
+):
 
     # retrieve the config for the given model
     cfg = utils.load_config(model)
@@ -26,7 +49,11 @@ def main(model: str, metadata: str, alignments_dir: str, n_workers: int):
 
     # load from the dataset
     loader = DataLoader(
-        ds, n_workers, collate_fn=dataset.collate_fn, shuffle=False
+        ds,
+        batch_size=batch_size,
+        num_workers=n_workers,
+        collate_fn=dataset.collate_fn,
+        shuffle=False,
     )
 
     # use a gpu if it's there

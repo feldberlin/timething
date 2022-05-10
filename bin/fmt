@@ -1,4 +1,4 @@
 #!/bin/bash
 
-black --line-length 80 **/*.py
-isort **/*.py
+black --line-length 80 **/*.py *.py
+isort **/*.py *.py
