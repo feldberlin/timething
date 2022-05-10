@@ -35,10 +35,10 @@ class Segment:
     # the string of characters in the segment
     label: str
 
-    # start offset in seconds in the audio
+    # start offset in model frames in the audio
     start: int
 
-    # end offset in seconds in the audio
+    # end offset in model frames in the audio
     end: int
 
     # confidence score under the given ASR model
@@ -84,13 +84,20 @@ class Alignment:
     word_segments: typing.List[Segment]
 
     # number of stft frames in this example
-    n_frames: int
+    n_model_frames: int
 
     # number of audio samples in this example
-    n_samples: int
+    n_audio_samples: int
 
-    # multipler to convert from frame to seconds
-    ratio: float
+    # the sampling rate
+    sampling_rate: int
+
+    def model_frames_to_fraction(self, n_frames):
+        return n_frames / self.n_model_frames
+
+    def model_frames_to_seconds(self, n_frames):
+        fraction = self.model_frames_to_fraction(n_frames)
+        return fraction * self.n_audio_samples / self.sampling_rate
 
 
 class Aligner:
@@ -135,18 +142,17 @@ class Aligner:
             path = backtrack(trellis, log_prob, tokens)
             char_segments = merge_repeats(path, y)
             word_segments = merge_words(char_segments)
-            n_frames = trellis.shape[0] - 1
-            n_samples = x.shape[1]
-            ratio = n_samples / n_frames
+            n_model_frames = trellis.shape[0] - 1
+            n_audio_samples = x.shape[1]
             alignment = Alignment(
                 log_probs,
                 trellis,
                 path,
                 char_segments,
                 word_segments,
-                n_frames,
-                n_samples,
-                ratio,
+                n_model_frames,
+                n_audio_samples,
+                self.sr
             )
 
             alignments.append(alignment)

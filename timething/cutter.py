@@ -20,8 +20,8 @@ def pause_cuts(alignment, cut_threshold=20):
 
     # a list of (from, to) word segments that we want to cut on
     bounds = []
-    if not pause_segment_idxs:
-        bounds.append((0, n_words))
+    if len(pause_segment_idxs) == 0:
+        bounds.append((0, n_words - 1))
     else:
         from_word = 0
         for to_word in pause_segment_idxs:
@@ -51,6 +51,6 @@ def pause_durations(alignment: align.Alignment) -> typing.List[int]:
 
     segments = alignment.word_segments
     pauses = [y.start - x.end for (x, y) in zip(segments[:-1], segments[1:])]
-    pause_end = alignment.n_frames - segments[-1].end
+    pause_end = alignment.n_model_frames - segments[-1].end
     pauses.append(pause_end)
     return pauses
