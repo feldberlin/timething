@@ -1,10 +1,10 @@
 from pathlib import Path
 
+from torch.utils.data import DataLoader
 import click
 import torch
-from torch.utils.data import DataLoader
 
-from timething import job, align, utils  # type: ignore
+from timething import job, dataset, utils  # type: ignore
 
 
 @click.command()
@@ -22,20 +22,24 @@ def main(model: str, metadata: str, alignments_dir: str, n_workers: int):
     cfg = utils.load_config(model)
 
     # construct the dataset
-    ds = align.SpeechDataset(
-        Path(metadata), cfg.sampling_rate, clean_text_fn=align.clean_text_fn
+    ds = dataset.SpeechDataset(
+        Path(metadata), cfg.sampling_rate, clean_text_fn=dataset.clean_text_fn
     )
 
     # load from the dataset
     loader = DataLoader(
-        ds, n_workers, collate_fn=align.collate_fn, shuffle=False
+        ds, n_workers, collate_fn=dataset.collate_fn, shuffle=False
     )
 
     # use a gpu if it's there
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # construct and run the job
+    print("constructing aligment job.")
     j = job.Job(cfg, loader, device, Path(alignments_dir))
+
+    # go
+    print("starting aligment job.")
     j.run()
 
 
