@@ -59,7 +59,10 @@ thing, except for characters.
 ## Supported languages
 
 Currently supported languages can be found [in
-models.yaml](https://github.com/feldberlin/timething/blob/main/timething/models.yaml)
+models.yaml](https://github.com/feldberlin/timething/blob/main/timething/models.yaml).
+This currently includes English, German, Dutch, Polish, Italian, Portuguese,
+Spanish, French, Russian, Japanese, Greek and Arabic models. We have only
+tested the German model so far.
 
 Due to the large number of CTC speech models available on the Hugging Face AI
 community, new languages can be easily added to Timething. Alternatively,

@@ -1,5 +1,71 @@
+english:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-english"
+  pin: "b2d324463557ad3ea6cbc10f5da5e886350df3ee"
+  sampling_rate: 16000
+  language: "en"
+
 german:
   model: "jonatasgrosman/wav2vec2-large-xlsr-53-german"
   pin: "cfae76036d917cd78e5d1ec6e672f8a037e1cbae"
   sampling_rate: 16000
   language: "de"
+
+dutch:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-dutch"
+  pin: "38c2de1e4ae9eb00a9305e3c7ac36a3a3c46ec1f"
+  sampling_rate: 16000
+  language: "en"
+
+polish:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-polish"
+  pin: "1c015c0ebb551cf81f9e1198edbe39bce2ee675d"
+  sampling_rate: 16000
+  language: "nl"
+
+italian:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-italian"
+  pin: "f61be55bcf694452a6c2ef49cff1b443ed56556e"
+  sampling_rate: 16000
+  language: "it"
+
+portuguese:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-portuguese"
+  pin: "9d11536ef91df1f134723a1ec7c6c25051b96426"
+  sampling_rate: 16000
+  language: "pt"
+
+spanish:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-spanish"
+  pin: "f077bc03849cf15e5dccdc8566f1ce1210a57d93"
+  sampling_rate: 16000
+  language: "es"
+
+french:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-french"
+  pin: "e053823ccf42fcbf839bb778a064d3f9138d668c"
+  sampling_rate: 16000
+  language: "fr"
+
+russian:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-russian"
+  pin: "f99a4db9a467671353aceab9d898b23222df8bd7"
+  sampling_rate: 16000
+  language: "ru"
+
+japanese:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-japanese"
+  pin: "960f38c54d913604ae357fdd6711ad6bf87c989a"
+  sampling_rate: 16000
+  language: "ja"
+
+greek:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-greek"
+  pin: "eb8f164256748973909e6b5b308d72875ee08d18"
+  sampling_rate: 16000
+  language: "el"
+
+arabic:
+  model: "jonatasgrosman/wav2vec2-large-xlsr-53-arabic"
+  pin: "204552cdcaec935142a7d409c194b541985a3808"
+  sampling_rate: 16000
+  language: "ar"
