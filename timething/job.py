@@ -76,5 +76,5 @@ def write(output_path, id, alignment):
 
     # write the file
     filename = (output_path / id).with_suffix(".json")
-    with open(filename, "w") as f:
-        f.write(json.dumps(meta, indent=4, sort_keys=True))
+    with open(filename, "w", encoding='utf8') as f:
+        f.write(json.dumps(meta, indent=4, sort_keys=True, ensure_ascii=False))
