@@ -13,6 +13,49 @@ the Hugging Face AI community. The approach is described in this [PyTorch
 Tutorial](https://pytorch.org/audio/main/tutorials/forced_alignment_tutorial.html),
 as well as in this [paper](https://arxiv.org/abs/2007.09127).
 
+## Running
+
+Timething currently expects to find a folder containing one or more chapters
+in the following form:
+
+
+    └── audio/
+        ├── metadata.csv
+        ├── alignments/
+        └── wavs/
+            ├── chapter01.wav
+            ├── chapter02.wav
+            └── chapter03.wav
+
+
+The file `metadata.csv` should contain one entry per wav file in the following
+format:
+
+```csv
+chapter01|The transcript for chapter01 on a single line here
+chapter02|The transcript for chapter02 on a single line here
+chapter03|The transcript for chapter03 on a single line here
+```
+
+You can now run timething on your CPU or GPU:
+
+
+```bash
+python cli.py \
+  --model german \
+  --metadata audio/metadata.csv \
+  --alignments-dir audio/alignments \
+  --batch-size 8 \
+  --n-workers 8
+```
+
+Results will be written into the `alignments` folder, into a single file json
+file named after each audio id. Each file will contain the character level and
+the word level alignments. For word level alignments, each word will have the
+starting time in seconds, the ending time in seconds, the confidence level for
+that word, and the word label. For character level alignments we have the same
+thing, except for characters.
+
 ## Alternatives
 
 There are many mature libraries that can already do forced alignment like
