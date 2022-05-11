@@ -3,6 +3,7 @@ name: timething
 channels:
   - pytorch
   - huggingface
+  - conda-forge
 
 dependencies:
   - python=3.8
