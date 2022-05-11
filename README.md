@@ -56,6 +56,21 @@ starting time in seconds, the ending time in seconds, the confidence level for
 that word, and the word label. For character level alignments we have the same
 thing, except for characters.
 
+## Supported languages
+
+Currently supported languages can be found [in
+models.yaml](https://github.com/feldberlin/timething/blob/main/timething/models.yaml)
+
+Due to the large number of CTC speech models available on the Hugging Face AI
+community, new languages can be easily added to Timething. Alternatively,
+Wav2Vec can be fine-tuned as described
+[here](https://huggingface.co/blog/fine-tune-wav2vec2-english), using any of
+the [Common Voice](https://commonvoice.mozilla.org/en/languages) languages, 87
+at the time of writing.
+
+Support for text cleaning is currently minimal, and may need to be extended
+for new languages.
+
 ## Alternatives
 
 There are many mature libraries that can already do forced alignment like
