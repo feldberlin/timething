@@ -1,4 +1,3 @@
-import re
 import typing
 from dataclasses import dataclass
 from pathlib import Path
@@ -94,35 +93,6 @@ class SpeechDataset(Dataset):
             records.append(CSVRecord(row.id, file_path, row.transcript))
 
         return records
-
-
-def clean_text_fn(vocab: typing.List[str]):
-    """
-    A generic text cleaner. Language specific cleaners needed.
-    """
-
-    allowed_chars = "".join(sorted({c for c in vocab if len(c) == 1}))
-    allowed_chars_re = re.compile(f"[^{re.escape(allowed_chars)}]+")
-
-    def fn(text: str):
-
-        # assumes a lower case only text model.
-        text = text.lower()
-
-        # XXX(rk): pull this out
-        text = text.replace("ß", "ss")
-
-        # replace all non-vocabulary characters with space
-        text = re.sub(allowed_chars_re, " ", text)
-
-        # collapse repeating spaces and replace with pipe
-        text = re.sub(" +", " ", text)
-        text = text.strip()
-        text = text.replace(" ", "|")
-
-        return text
-
-    return fn
 
 
 def collate_fn(recordings: typing.List[Recording]):

@@ -2,3 +2,4 @@ german:
   model: "jonatasgrosman/wav2vec2-large-xlsr-53-german"
   pin: "cfae76036d917cd78e5d1ec6e672f8a037e1cbae"
   sampling_rate: 16000
+  language: "de"

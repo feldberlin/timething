@@ -8,6 +8,7 @@ dependencies:
   - python=3.8
   - click
   - datasets
+  - num2words
   - numpy
   - pytorch
   - tokenizers=0.10.1

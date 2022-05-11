@@ -4,7 +4,7 @@ import click
 import torch
 from torch.utils.data import DataLoader
 
-from timething import dataset, job, utils  # type: ignore
+from timething import dataset, job, text, utils  # type: ignore
 
 
 @click.command()
@@ -64,7 +64,7 @@ def main(
     j = job.Job(cfg, loader, device, Path(alignments_dir))
 
     # construct the generic model text cleaner
-    ds.clean_text_fn = dataset.clean_text_fn(j.aligner.vocab())
+    ds.clean_text_fn = text.clean_text_fn(cfg.language, j.aligner.vocab())
 
     # go
     print("starting aligment job...")

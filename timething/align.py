@@ -24,6 +24,9 @@ class Config:
     # sampling rate expected from this model
     sampling_rate: int
 
+    # language code
+    language: str
+
 
 @dataclass
 class Segment:

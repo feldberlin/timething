@@ -1,7 +1,7 @@
 from pathlib import Path
-import yaml  # type: ignore
 
 import torchaudio  # type: ignore
+import yaml  # type: ignore
 
 from timething import align  # type: ignore
 
@@ -17,7 +17,10 @@ def load_config(model: str) -> align.Config:
     with open(MODELS_YAML, "r") as f:
         cfg = yaml.safe_load(f)
         return align.Config(
-            cfg[model]["model"], cfg[model]["pin"], cfg[model]["sampling_rate"]
+            cfg[model]["model"],
+            cfg[model]["pin"],
+            cfg[model]["sampling_rate"],
+            cfg[model]["language"],
         )
 
 
@@ -33,8 +36,4 @@ def load_slice(filename: Path, start_seconds: float, end_seconds: float):
     start = int(start_seconds / seconds_per_frame)
     end = int(end_seconds / seconds_per_frame)
     duration = end - start
-    return torchaudio.load(
-        filename,
-        start,
-        duration
-    )
+    return torchaudio.load(filename, start, duration)
