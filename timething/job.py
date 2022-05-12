@@ -1,11 +1,10 @@
-import json
 from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm  # type: ignore
 
-from timething import align  # type: ignore
+from timething import align, utils  # type: ignore
 
 
 class Job:
@@ -33,48 +32,4 @@ class Job:
 
             # write the alignments
             for i, id in enumerate(ids):
-                write(self.output_path, id, alignments[i])
-
-
-def write(output_path, id, alignment):
-    """
-    Write a custom json alignments file for a given aligned recording.
-    """
-
-    def rescale(n_model_frames: int) -> float:
-        return alignment.model_frames_to_seconds(n_model_frames)
-
-    # character aligments
-    char_alignments = []
-    for segment in alignment.char_segments:
-        char_alignments.append(
-            {
-                "start": rescale(segment.start),
-                "end": rescale(segment.end),
-                "label": segment.label,
-                "score": segment.score,
-            }
-        )
-
-    # character aligments
-    word_alignments = []
-    for segment in alignment.word_segments:
-        word_alignments.append(
-            {
-                "start": rescale(segment.start),
-                "end": rescale(segment.end),
-                "label": segment.label,
-                "score": segment.score,
-            }
-        )
-
-    # combine the metadata
-    meta = {
-        "char_alignments": char_alignments,
-        "word_alignments": word_alignments,
-    }
-
-    # write the file
-    filename = (output_path / id).with_suffix(".json")
-    with open(filename, "w", encoding='utf8') as f:
-        f.write(json.dumps(meta, indent=4, sort_keys=True, ensure_ascii=False))
+                utils.write_alignment(self.output_path, id, alignments[i])

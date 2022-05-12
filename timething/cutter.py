@@ -5,7 +5,9 @@ import numpy as np
 from timething import align  # type: ignore
 
 
-def pause_cuts(alignment, cut_threshold=20):
+def pause_cuts(
+    alignment: align.Alignment, cut_threshold=20
+) -> typing.List[align.Segment]:
 
     # word segments
     word_segments = alignment.word_segments

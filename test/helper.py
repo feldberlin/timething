@@ -2,11 +2,24 @@
 #
 #
 
+import contextlib
+import shutil
+import tempfile
 import typing
+from pathlib import Path
 
 import numpy as np
 
 from timething import align  # type: ignore
+
+
+@contextlib.contextmanager
+def tempdir():
+    temp_dir = tempfile.mkdtemp()
+    try:
+        yield Path(temp_dir)
+    finally:
+        shutil.rmtree(temp_dir)
 
 
 def alignment(n_model_frames: int, word_segments: typing.List[align.Segment]):
