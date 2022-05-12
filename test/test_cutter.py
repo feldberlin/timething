@@ -5,8 +5,8 @@ from timething import align, cutter  # type: ignore
 
 def test_pause_durations():
     alignment = helper.alignment(
-        30,
-        [
+        n_model_frames=30,
+        word_segments=[
             align.Segment("hello", 2, 8, 1.0),
             align.Segment("world", 11, 20, 1.0),
         ],
@@ -18,8 +18,8 @@ def test_pause_durations():
 
 def test_no_cut():
     alignment = helper.alignment(
-        30,
-        [
+        n_model_frames=30,
+        word_segments=[
             align.Segment("hello", 2, 8, 1.0),
             align.Segment("world", 11, 20, 1.0),
         ],
@@ -34,8 +34,8 @@ def test_no_cut():
 
 def test_one_cut():
     alignment = helper.alignment(
-        30,
-        [
+        n_model_frames=30,
+        word_segments=[
             align.Segment("hello", 2, 8, 1.0),
             align.Segment("world", 15, 30, 1.0),
         ],

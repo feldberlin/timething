@@ -104,6 +104,12 @@ class Alignment:
         fraction = self.model_frames_to_fraction(n_frames)
         return fraction * self.n_audio_samples / self.sampling_rate
 
+    def seconds_to_model_frames(self, n_seconds):
+        "Returns the absolute offset in model frames at n_seconds"
+        n_total_seconds = self.n_audio_samples / self.sampling_rate
+        fraction = n_seconds / n_total_seconds
+        return round(fraction * self.n_model_frames)
+
 
 class Aligner:
     """

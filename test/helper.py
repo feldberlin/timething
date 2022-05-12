@@ -8,8 +8,6 @@ import tempfile
 import typing
 from pathlib import Path
 
-import numpy as np
-
 from timething import align  # type: ignore
 
 
@@ -22,14 +20,21 @@ def tempdir():
         shutil.rmtree(temp_dir)
 
 
-def alignment(n_model_frames: int, word_segments: typing.List[align.Segment]):
+def alignment(
+    word_segments: typing.List[align.Segment] = None,
+    char_segments: typing.List[align.Segment] = None,
+    n_model_frames: int = 30,
+    n_audio_samples: int = 100,
+    sampling_rate: int = 16000,
+):
+
     return align.Alignment(
-        log_probs=np.zeros(1),
-        trellis=np.zeros(1),
-        path=np.zeros(1),
-        char_segments=[],
-        word_segments=word_segments,
+        log_probs=None,
+        trellis=None,
+        path=None,
+        char_segments=char_segments or [],
+        word_segments=word_segments or [],
         n_model_frames=n_model_frames,
-        n_audio_samples=100,
-        sampling_rate=16000,
+        n_audio_samples=n_audio_samples,
+        sampling_rate=sampling_rate,
     )
