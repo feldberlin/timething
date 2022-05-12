@@ -76,6 +76,9 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
     meta = {
         "char_alignments": char_alignments,
         "word_alignments": word_alignments,
+        "n_model_frames": alignment.n_model_frames,
+        "n_audio_samples": alignment.n_audio_samples,
+        "sampling_rate": alignment.sampling_rate,
     }
 
     # write the file
@@ -86,27 +89,40 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
 
 def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
     """
-    Read Aligments json file. Only contains the segmentation
+    Read Aligments json file.
     """
 
     with open((alignments_dir / alignment_id).with_suffix(".json"), "r") as f:
         alignment_dict = json.load(f)
 
-    char_segments = [
+    alignment = align.Alignment(
+        None,  # log probs
+        None,  # trellis
+        None,  # backtracking path
+        [],  # char segments
+        [],  # word segments
+        alignment_dict["n_model_frames"],
+        alignment_dict["n_audio_samples"],
+        alignment_dict["sampling_rate"],
+    )
+
+    def rescale(n_seconds: int) -> int:
+        return alignment.seconds_to_model_frames(n_seconds)
+
+    def dict_to_segment(d: dict) -> align.Segment:
+        return align.Segment(
+            start=rescale(d["start"]),
+            end=rescale(d["end"]),
+            label=d["label"],
+            score=d["score"],
+        )
+
+    alignment.char_segments = [
         dict_to_segment(d) for d in alignment_dict["char_alignments"]
     ]
 
-    word_segments = [
+    alignment.word_segments = [
         dict_to_segment(d) for d in alignment_dict["word_alignments"]
     ]
 
-    return align.Alignment(
-        None, None, None, char_segments, word_segments, None, None, None
-    )
-
-
-def dict_to_segment(d: dict) -> align.Segment:
-    "Convert dict to Segment"
-    return align.Segment(
-        start=d["start"], end=d["end"], label=d["label"], score=d["score"]
-    )
+    return alignment
