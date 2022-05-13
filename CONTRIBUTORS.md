@@ -2,7 +2,7 @@
 
 Thanks to the following contributors:
 
-* [Adam Froghyar ](https://github.com/a-froghyar)
+* [Adam Froghyar](https://github.com/a-froghyar)
 * [Rany Keddo](http://github.com/purzelrakete)
 
 # Thanks

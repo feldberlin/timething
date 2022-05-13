@@ -1,8 +1,6 @@
 from pathlib import Path
 
 import click
-import torch
-from torch.utils.data import DataLoader
 
 from timething import dataset, job, text, utils  # type: ignore
 
@@ -12,13 +10,13 @@ from timething import dataset, job, text, utils  # type: ignore
 @click.option(
     "--metadata",
     required=True,
-    type=click.Path(),
+    type=click.Path(exists=True),
     help="Full path to metadata csv.",
 )
 @click.option(
     "--alignments-dir",
     required=True,
-    type=click.Path(),
+    type=click.Path(exists=True),
     help="Dir to write results to.",
 )
 @click.option(
@@ -40,6 +38,13 @@ def main(
     batch_size: int,
     n_workers: int,
 ):
+    """Timething is a library for aligning text transcripts with audio.
+
+    You provide a audio files, as well as a text file with the complete text
+    transcripts. Timething will output a list of time-codes for each word and
+    character that indicate when this word or letter was spoken in the audio
+    you provided.
+    """
 
     # retrieve the config for the given model
     cfg = utils.load_config(model)
@@ -47,21 +52,15 @@ def main(
     # construct the dataset
     ds = dataset.SpeechDataset(Path(metadata), cfg.sampling_rate)
 
-    # load from the dataset
-    loader = DataLoader(
-        ds,
-        batch_size=batch_size,
-        num_workers=n_workers,
-        collate_fn=dataset.collate_fn,
-        shuffle=False,
-    )
-
-    # use a gpu if it's there
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     # construct and run the job
     print("setting up aligment job...")
-    j = job.Job(cfg, loader, device, Path(alignments_dir))
+    j = job.Job(
+        cfg,
+        ds,
+        Path(alignments_dir),
+        batch_size=batch_size,
+        n_workers=n_workers,
+    )
 
     # construct the generic model text cleaner
     ds.clean_text_fn = text.clean_text_fn(cfg.language, j.aligner.vocab())
@@ -69,7 +68,3 @@ def main(
     # go
     print("starting aligment job...")
     j.run()
-
-
-if __name__ == "__main__":
-    main()

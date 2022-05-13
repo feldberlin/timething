@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import numpy as np
 import torchaudio  # type: ignore
 import yaml  # type: ignore
 
@@ -96,9 +97,9 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
         alignment_dict = json.load(f)
 
     alignment = align.Alignment(
-        None,  # log probs
-        None,  # trellis
-        None,  # backtracking path
+        np.array([]),  # log probs
+        np.array([]),  # trellis
+        np.array([]),  # backtracking path
         [],  # char segments
         [],  # word segments
         alignment_dict["n_model_frames"],

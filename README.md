@@ -8,10 +8,19 @@ Timething will output a list of time-codes for each word and character that
 indicate when this word or letter was spoken in the audio you provided.
 Timething strives to be fast and accurate, and can run on both GPUs or CPUs.
 
-Timething uses uses powerful Wav2Vec based speech recognition models hosted by
-the Hugging Face AI community. The approach is described in this [PyTorch
+Timething uses powerful Wav2Vec based speech recognition models hosted by the
+Hugging Face AI community. The approach is described in this [PyTorch
 Tutorial](https://pytorch.org/audio/main/tutorials/forced_alignment_tutorial.html),
 as well as in this [paper](https://arxiv.org/abs/2007.09127).
+
+## Installation
+
+To install Timething, you'll need an installation of Python 3.7 or 3.8. You
+can then install it using pip:
+
+```bash
+pip install timething
+```
 
 ## Running
 
@@ -19,16 +28,16 @@ Timething currently expects to find a folder containing one or more chapters
 in the following form:
 
 
-    └── audio/
-        ├── metadata.csv
-        ├── alignments/
+    └── dir/
+        ├── text.csv
+        ├── aligned/
         └── wavs/
             ├── chapter01.wav
             ├── chapter02.wav
             └── chapter03.wav
 
 
-The file `metadata.csv` should contain one entry per wav file in the following
+The file `text.csv` should contain one entry per wav file in the following
 format:
 
 ```csv
@@ -37,24 +46,31 @@ chapter02|The transcript for chapter02 on a single line here
 chapter03|The transcript for chapter03 on a single line here
 ```
 
-You can now run timething on your CPU or GPU:
-
+You can now run Timething on your CPU or GPU, for example:
 
 ```bash
-python cli.py \
+timething --model german --metadata text.csv --alignments-dir aligned
+```
+
+You can also specify more options, e.g.:
+
+```bash
+timething \
   --model german \
-  --metadata audio/metadata.csv \
-  --alignments-dir audio/alignments \
+  --metadata text.csv \
+  --alignments-dir aligned \
   --batch-size 8 \
   --n-workers 8
 ```
 
-Results will be written into the `alignments` folder, into a single file json
-file named after each audio id. Each file will contain the character level and
-the word level alignments. For word level alignments, each word will have the
-starting time in seconds, the ending time in seconds, the confidence level for
-that word, and the word label. For character level alignments we have the same
-thing, except for characters.
+Run `timething --help` for a full description.
+
+Results will be written into the given folder, e.g. `aligned`. They will be
+written into a single json file named after each audio id. Each file will
+contain the character level and the word level alignments. For word level
+alignments, each word will have the starting time in seconds, the ending time
+in seconds, the confidence level for that word and the word label. Character
+level alignments have the corresponding results.
 
 ## Supported languages
 

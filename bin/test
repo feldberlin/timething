@@ -2,7 +2,7 @@
 #
 # try bin/test --pdb
 
-set -e
+set -eo pipefail
 
 mypy .
 bin/lint
