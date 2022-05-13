@@ -75,7 +75,7 @@ level alignments have the corresponding results.
 ## Supported languages
 
 Currently supported languages can be found [in
-models.yaml](https://github.com/feldberlin/timething/blob/main/timething/models.yaml).
+models.yaml](https://github.com/feldberlin/timething/blob/main/src/timething/models.yaml).
 This currently includes English, German, Dutch, Polish, Italian, Portuguese,
 Spanish, French, Russian, Japanese, Greek and Arabic models. We have only
 tested the German model so far.
