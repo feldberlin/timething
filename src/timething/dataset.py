@@ -72,7 +72,7 @@ class SpeechDataset(Dataset):
             audio = tf(audio)
 
         # squash to or retain mono
-        audio = torch.mean(audio, 0)
+        audio = torch.mean(audio, 0, keepdim=True)
 
         # read and process transcription
         transcript = record.transcript

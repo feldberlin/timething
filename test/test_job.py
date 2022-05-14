@@ -1,7 +1,7 @@
 import helper
 import pytest
 
-from timething import dataset, job, utils
+from timething import dataset, job, utils, text
 
 
 @pytest.mark.integration
@@ -14,16 +14,19 @@ def test_job():
         ds = dataset.SpeechDataset(metadata, cfg.sampling_rate)
         assert len(ds) == 2
 
-        print("setting up alignment job")
+        print("setting up alignment job...")
         j = job.Job(cfg, ds, tmp, batch_size=1, n_workers=1)
 
-        print("aligning")
+        # construct the generic model text cleaner
+        ds.clean_text_fn = text.clean_text_fn(cfg.language, j.aligner.vocab())
+
+        # align
         j.run()
 
-    one = utils.read_alignment(tmp, "audio/one.mp3")
-    two = utils.read_alignment(tmp, "audio/two.mp3")
+        one = utils.read_alignment(tmp, "audio/one.mp3")
+        two = utils.read_alignment(tmp, "audio/two.mp3")
 
-    assert len(one.word_segments) == 1
-    assert one.word_segments[0] == "one"
-    assert len(two.word_segments) == 1
-    assert two.word_segments[0] == "two"
+        assert len(one.word_segments) == 1
+        assert one.word_segments[0].label == "one"
+        assert len(two.word_segments) == 1
+        assert two.word_segments[0].label == "two"

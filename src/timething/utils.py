@@ -84,8 +84,11 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
         "sampling_rate": alignment.sampling_rate,
     }
 
+    # write any path components, e.g. for id 'audio/one.mp3.json'
+    filename = alignment_filename(output_path, id)
+    filename.parent.mkdir(parents=True, exist_ok=True)
+
     # write the file
-    filename = (output_path / id).with_suffix(".json")
     with open(filename, "w", encoding="utf8") as f:
         f.write(json.dumps(meta, indent=4, sort_keys=True, ensure_ascii=False))
 
@@ -95,7 +98,7 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
     Read Aligments json file.
     """
 
-    with open((alignments_dir / alignment_id).with_suffix(".json"), "r") as f:
+    with open(alignment_filename(alignments_dir, alignment_id), "r") as f:
         alignment_dict = json.load(f)
 
     alignment = align.Alignment(
@@ -129,3 +132,12 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
     ]
 
     return alignment
+
+
+def alignment_filename(path, id):
+    """
+    From audio/one.mp3 to audio/one.mp3.json
+    """
+
+    filename = path / id
+    return filename.parent / (filename.name + '.json')
