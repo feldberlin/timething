@@ -89,7 +89,7 @@ class SpeechDataset(Dataset):
         df = pd.read_csv(metadata, delimiter="|", names=("id", "transcript"))
         records = []
         for (_, row) in df.iterrows():
-            file_path = (metadata.parent / "wavs" / row.id).with_suffix(".wav")
+            file_path = metadata.parent / row.id
             records.append(CSVRecord(row.id, file_path, row.transcript))
 
         return records

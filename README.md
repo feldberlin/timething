@@ -31,25 +31,28 @@ in the following form:
     └── dir/
         ├── text.csv
         ├── aligned/
-        └── wavs/
-            ├── chapter01.wav
-            ├── chapter02.wav
-            └── chapter03.wav
+        └── audio/
+            ├── chapter01.mp3
+            ├── chapter02.mp3
+            └── chapter03.mp3
 
+
+Timething can process many audio formats, including MP3, WAV, FLACC and
+OGG/VORBIS.
 
 The file `text.csv` should contain one entry per wav file in the following
 format:
 
 ```csv
-chapter01|The transcript for chapter01 on a single line here
-chapter02|The transcript for chapter02 on a single line here
-chapter03|The transcript for chapter03 on a single line here
+audio/chapter01.mp3|The transcript for chapter01 on a single line here
+audio/chapter02.mp3|The transcript for chapter02 on a single line here
+audio/chapter03.mp3|The transcript for chapter03 on a single line here
 ```
 
 You can now run Timething on your CPU or GPU, for example:
 
 ```bash
-timething --model german --metadata text.csv --alignments-dir aligned
+timething --metadata text.csv --alignments-dir aligned
 ```
 
 You can also specify more options, e.g.:

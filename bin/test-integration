@@ -1,0 +1,7 @@
+#!/bin/bash
+#
+# try bin/test --pdb
+
+set -eo pipefail
+
+python -m pytest -s -m "integration" "$@"

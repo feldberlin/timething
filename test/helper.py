@@ -12,6 +12,9 @@ import numpy as np
 
 from timething import align  # type: ignore
 
+# fixtures directory
+fixtures = Path("fixtures")
+
 
 @contextlib.contextmanager
 def tempdir():

@@ -1,14 +1,16 @@
-import json
 from pathlib import Path
+import importlib.resources as pkg_resources
+import json
 
 import numpy as np
 import torchaudio  # type: ignore
 import yaml  # type: ignore
 
+import timething
 from timething import align  # type: ignore
 
 # yaml file containing all of the models
-MODELS_YAML = "timething/models.yaml"
+MODELS_YAML = "models.yaml"
 
 
 def load_config(model: str) -> align.Config:
@@ -16,14 +18,14 @@ def load_config(model: str) -> align.Config:
     Load config object for the given model key
     """
 
-    with open(MODELS_YAML, "r") as f:
-        cfg = yaml.safe_load(f)
-        return align.Config(
-            cfg[model]["model"],
-            cfg[model]["pin"],
-            cfg[model]["sampling_rate"],
-            cfg[model]["language"],
-        )
+    text = pkg_resources.read_text(timething, MODELS_YAML)
+    cfg = yaml.safe_load(text)
+    return align.Config(
+        cfg[model]["model"],
+        cfg[model]["pin"],
+        cfg[model]["sampling_rate"],
+        cfg[model]["language"],
+    )
 
 
 def load_slice(filename: Path, start_seconds: float, end_seconds: float):

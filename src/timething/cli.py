@@ -6,7 +6,12 @@ from timething import dataset, job, text, utils  # type: ignore
 
 
 @click.command()
-@click.option("--model", required=True, help="Key in timething/models.yaml.")
+@click.option(
+    "--model",
+    default="english",
+    show_default=True,
+    help="Key in timething/models.yaml."
+)
 @click.option(
     "--metadata",
     required=True,
