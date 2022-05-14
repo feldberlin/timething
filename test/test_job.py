@@ -6,7 +6,7 @@ from timething import dataset, job, utils, text
 
 @pytest.mark.integration
 def test_job():
-    cfg = utils.load_config("german")
+    cfg = utils.load_config("english")
     metadata = helper.fixtures / "text.csv"
     with helper.tempdir() as tmp:
 
@@ -24,9 +24,11 @@ def test_job():
         j.run()
 
         one = utils.read_alignment(tmp, "audio/one.mp3")
-        two = utils.read_alignment(tmp, "audio/two.mp3")
-
         assert len(one.word_segments) == 1
         assert one.word_segments[0].label == "one"
+        assert one.word_segments[0].score > 0.9
+
+        two = utils.read_alignment(tmp, "audio/two.mp3")
         assert len(two.word_segments) == 1
         assert two.word_segments[0].label == "two"
+        assert two.word_segments[0].score > 0.9
