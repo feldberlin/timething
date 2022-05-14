@@ -25,4 +25,8 @@ def test_read_write_alignment_roundtrip():
             sampling_rate=alignment.sampling_rate,
         )
 
-        assert got == want
+        assert got.char_segments == want.char_segments
+        assert got.word_segments == want.word_segments
+        assert got.n_model_frames == want.n_model_frames
+        assert got.n_audio_samples == want.n_audio_samples
+        assert got.sampling_rate == want.sampling_rate
