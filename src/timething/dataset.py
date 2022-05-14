@@ -65,9 +65,14 @@ class SpeechDataset(Dataset):
 
         # read in audio
         audio, sample_rate = torchaudio.load(record.file)
+
+        # resample, if needed
         if self.resample(sample_rate):
             tf = torchaudio.transforms.Resample(sample_rate, self.resample_to)
             audio = tf(audio)
+
+        # squash to or retain mono
+        audio = torch.mean(audio, 0)
 
         # read and process transcription
         transcript = record.transcript
