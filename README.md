@@ -1,4 +1,5 @@
 [![Build](https://github.com/feldberlin/timething/workflows/CI/badge.svg)](https://github.com/feldberlin/timething/actions)
+[![PyPI version](https://badge.fury.io/py/timething.svg)](https://badge.fury.io/py/timething)
 
 # Timething
 
