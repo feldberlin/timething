@@ -1,7 +1,7 @@
 import helper
 import pytest
 
-from timething import dataset, job, utils, text
+from timething import dataset, job, text, utils
 
 
 @pytest.mark.integration

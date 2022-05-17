@@ -6,3 +6,22 @@ build-backend = "setuptools.build_meta"
 pythonpath = [
   "src"
 ]
+
+[tool.isort]
+profile = "black"
+skip = [".gitignore"]
+src_paths = ["src", "tests"]
+
+[tool.black]
+line-length = 80
+extended-include = '''
+(
+  ^/test/
+  ^/src/timething/
+)
+'''
+extended-exclude = '''
+(
+  __pycache__
+)
+'''

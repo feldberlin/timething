@@ -1,6 +1,6 @@
-from pathlib import Path
 import importlib.resources as pkg_resources
 import json
+from pathlib import Path
 
 import numpy as np
 import torchaudio  # type: ignore
@@ -140,4 +140,4 @@ def alignment_filename(path, id):
     """
 
     filename = path / id
-    return filename.parent / (filename.name + '.json')
+    return filename.parent / (filename.name + ".json")
