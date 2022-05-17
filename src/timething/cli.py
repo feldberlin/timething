@@ -68,7 +68,7 @@ def main(
     )
 
     # construct the generic model text cleaner
-    ds.clean_text_fn = text.clean_text_fn(cfg.language, j.aligner.vocab())
+    ds.clean_text_fn = text.TextCleaner(cfg.language, j.aligner.vocab())
 
     # go
     print("starting aligment job...")

@@ -7,23 +7,25 @@ from num2words import num2words  # type: ignore
 NUMS_RE = re.compile(r"[-+]?(?:\d*\.\d+|\d+)")
 
 
-def clean_text_fn(language: str, vocab: typing.List[str]):
+class TextCleaner:
     """
     A generic text cleaner. Langauge is an ISO 639-1 code
     """
 
-    allowed_chars = "".join(sorted({c for c in vocab if len(c) == 1}))
-    allowed_chars_re = re.compile(f"[^{re.escape(allowed_chars)}]+")
+    def __init__(self, language: str, vocab: typing.List[str]):
+        self.language = language
+        self.allowed_chars = "".join(sorted({c for c in vocab if len(c) == 1}))
+        self.blacklist = re.compile(f"[^{re.escape(self.allowed_chars)}]+")
 
-    def fn(text: str):
+    def __call__(self, text: str):
 
         # assumes a lower case only text model.
         text = text.casefold()
 
-        text = nums2words(text, lang=language)
+        text = nums2words(text, lang=self.language)
 
         # replace all non-vocabulary characters with space
-        text = re.sub(allowed_chars_re, " ", text)
+        text = re.sub(self.blacklist, " ", text)
 
         # collapse repeating spaces and replace with pipe
         text = re.sub(" +", " ", text)
@@ -31,8 +33,6 @@ def clean_text_fn(language: str, vocab: typing.List[str]):
         text = text.replace(" ", "|")
 
         return text
-
-    return fn
 
 
 def nums2words(text: str, lang: str):

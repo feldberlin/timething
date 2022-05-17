@@ -2,7 +2,7 @@ from timething import text  # type: ignore
 
 
 def test_cleaner():
-    cleaner_fn = text.clean_text_fn("de", list("abcdefghijklsnu "))
+    cleaner_fn = text.TextCleaner("de", list("abcdefghijklsnu "))
 
     # remove out of vocab letters
     assert cleaner_fn("ax bc mz") == "a|bc"

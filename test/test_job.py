@@ -18,7 +18,7 @@ def test_job():
         j = job.Job(cfg, ds, tmp, batch_size=1, n_workers=1)
 
         # construct the generic model text cleaner
-        ds.clean_text_fn = text.clean_text_fn(cfg.language, j.aligner.vocab())
+        ds.clean_text_fn = text.TextCleaner(cfg.language, j.aligner.vocab())
 
         # align
         j.run()
