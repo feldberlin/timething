@@ -1,10 +1,10 @@
 from pathlib import Path
 
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm  # type: ignore
 
-from timething import align, utils, dataset  # type: ignore
+from timething import align, dataset, utils  # type: ignore
 
 
 class Job:
@@ -18,7 +18,7 @@ class Job:
         ds: Dataset,
         output_path: Path,
         batch_size: int,
-        n_workers: int
+        n_workers: int,
     ):
         self.cfg = cfg
         self.device = "cuda" if torch.cuda.is_available() else "cpu"

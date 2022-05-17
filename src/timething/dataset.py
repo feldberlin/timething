@@ -8,6 +8,8 @@ import torch.nn.utils.rnn as rnn
 import torchaudio  # type: ignore
 from torch.utils.data import Dataset
 
+from timething import align, utils
+
 
 @dataclass
 class CSVRecord:
@@ -40,8 +42,15 @@ class Recording:
     # corresponding transcript
     transcript: str
 
+    # the alignment for this recording, if present on disk
+    alignment: typing.Optional[align.Alignment]
+
     # recording sample rate
     sample_rate: int
+
+    @property
+    def duration_seconds(self):
+        return self.audio.shape[-1] / self.sample_rate
 
 
 class SpeechDataset(Dataset):
@@ -49,10 +58,17 @@ class SpeechDataset(Dataset):
     Process a folder of audio files and transcriptions
     """
 
-    def __init__(self, metadata: Path, resample_to: int, clean_text_fn=None):
+    def __init__(
+        self,
+        metadata: Path,
+        resample_to: int,
+        alignments_path: typing.Optional[Path] = None,
+        clean_text_fn=None,
+    ):
         self.resample_to = resample_to
         self.clean_text_fn = clean_text_fn
         self.records = self.csv(metadata)
+        self.alignments_path = alignments_path
 
     def __getitem__(self, idx):
         """
@@ -79,7 +95,16 @@ class SpeechDataset(Dataset):
         if self.clean_text_fn:
             transcript = self.clean_text_fn(transcript)
 
-        return Recording(record.id, audio, transcript, sample_rate)
+        # read in aligments if they exist on disk
+        alignment = None
+        if self.alignments_path:
+            path = utils.alignment_filename(self.alignments_path, record.id)
+            if path.exists():
+                alignment = utils.read_alignment(
+                    self.alignments_path, alignment_id=record.id
+                )
+
+        return Recording(record.id, audio, transcript, alignment, sample_rate)
 
     def __len__(self):
         "number of examples in this dataset"

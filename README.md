@@ -76,6 +76,47 @@ alignments, each word will have the starting time in seconds, the ending time
 in seconds, the confidence level for that word and the word label. Character
 level alignments have the corresponding results.
 
+You can find an example dataset with alignments output in
+[`fixtures/`](https://github.com/feldberlin/timething/blob/main/fixtures).
+Here's what the alignment for "one.mp3", which contains only the word "one",
+looks like:
+
+```json
+{
+    "char_alignments": [
+        {
+            "end": 0.6497777777777777,
+            "label": "o",
+            "score": 0.9999776681264242,
+            "start": 0.5888611111111111
+        },
+        {
+            "end": 0.7106944444444444,
+            "label": "n",
+            "score": 0.9999442100524902,
+            "start": 0.6497777777777777
+        },
+        {
+            "end": 0.731,
+            "label": "e",
+            "score": 0.9999799728393555,
+            "start": 0.7106944444444444
+        }
+    ],
+    "n_audio_samples": 23392,
+    "n_model_frames": 72,
+    "sampling_rate": 16000,
+    "word_alignments": [
+        {
+            "end": 0.731,
+            "label": "one",
+            "score": 0.9999636581965855,
+            "start": 0.5888611111111111
+        }
+    ]
+}
+```
+
 ## Supported languages
 
 Currently supported languages can be found [in

@@ -10,7 +10,7 @@ from timething import dataset, job, text, utils  # type: ignore
     "--model",
     default="english",
     show_default=True,
-    help="Key in timething/models.yaml."
+    help="Key in timething/models.yaml.",
 )
 @click.option(
     "--metadata",
