@@ -1,0 +1,7 @@
+#!/bin/bash
+#
+# Run timething locally why developing
+
+set -eou pipefail
+export PYTHONPATH=$(pwd)/src
+python src/timething/cli.py "$@"

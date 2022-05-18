@@ -56,32 +56,58 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
     for segment in alignment.char_segments:
         char_alignments.append(
             {
+                "label": segment.label,
                 "start": rescale(segment.start),
                 "end": rescale(segment.end),
-                "label": segment.label,
                 "score": segment.score,
             }
         )
 
-    # character aligments
+    # original character aligments
+    original_char_alignments = []
+    for segment in alignment.original_char_segments:
+        original_char_alignments.append(
+            {
+                "label": segment.label,
+                "start": rescale(segment.start),
+                "end": rescale(segment.end),
+                "score": segment.score,
+            }
+        )
+
+    # word aligments
     word_alignments = []
     for segment in alignment.word_segments:
         word_alignments.append(
             {
+                "label": segment.label,
                 "start": rescale(segment.start),
                 "end": rescale(segment.end),
+                "score": segment.score,
+            }
+        )
+
+    # original worda aligments
+    original_word_alignments = []
+    for segment in alignment.original_word_segments:
+        original_word_alignments.append(
+            {
                 "label": segment.label,
+                "start": rescale(segment.start),
+                "end": rescale(segment.end),
                 "score": segment.score,
             }
         )
 
     # combine the metadata
     meta = {
-        "char_alignments": char_alignments,
-        "word_alignments": word_alignments,
         "n_model_frames": alignment.n_model_frames,
         "n_audio_samples": alignment.n_audio_samples,
         "sampling_rate": alignment.sampling_rate,
+        "chars": original_char_alignments,
+        "chars_cleaned": char_alignments,
+        "words": original_word_alignments,
+        "words_cleaned": word_alignments,
     }
 
     # write any path components, e.g. for id 'audio/one.mp3.json'
@@ -90,7 +116,7 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
 
     # write the file
     with open(filename, "w", encoding="utf8") as f:
-        f.write(json.dumps(meta, indent=4, sort_keys=True, ensure_ascii=False))
+        f.write(json.dumps(meta, indent=4, ensure_ascii=False))
 
 
 def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
@@ -106,7 +132,9 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
         np.array([]),  # trellis
         np.array([]),  # backtracking path
         [],  # char segments
+        [],  # original char segments
         [],  # word segments
+        [],  # original word segments
         alignment_dict["n_model_frames"],
         alignment_dict["n_audio_samples"],
         alignment_dict["sampling_rate"],
@@ -124,11 +152,19 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
         )
 
     alignment.char_segments = [
-        dict_to_segment(d) for d in alignment_dict["char_alignments"]
+        dict_to_segment(d) for d in alignment_dict["chars_cleaned"]
+    ]
+
+    alignment.original_char_segments = [
+        dict_to_segment(d) for d in alignment_dict["chars"]
     ]
 
     alignment.word_segments = [
-        dict_to_segment(d) for d in alignment_dict["word_alignments"]
+        dict_to_segment(d) for d in alignment_dict["words_cleaned"]
+    ]
+
+    alignment.original_word_segments = [
+        dict_to_segment(d) for d in alignment_dict["words"]
     ]
 
     return alignment
