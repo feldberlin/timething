@@ -23,5 +23,14 @@ extended-include = '''
 extended-exclude = '''
 (
   __pycache__
+  .mypy_cache
+  .hypothesis
 )
 '''
+
+[tool.mypy]
+ignore_missing_imports = true
+files = [
+  "src/**/*.py",
+  "tests/*.py",
+]

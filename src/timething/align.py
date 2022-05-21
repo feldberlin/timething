@@ -4,8 +4,10 @@ Forced Alignment with Wav2Vec2
 Adapted from the pytorch website. Original Author: Moto Hira <moto@fb.com>
 """
 
+import dataclasses
 import typing
 from dataclasses import dataclass
+from difflib import ndiff
 
 import numpy as np
 import torch
@@ -81,10 +83,16 @@ class Alignment:
     path: np.ndarray
 
     # character segments
-    char_segments: typing.List[Segment]
+    chars_cleaned: typing.List[Segment]
+
+    # character segments without cleaning
+    chars: typing.List[Segment]
 
     # word segments
-    word_segments: typing.List[Segment]
+    words_cleaned: typing.List[Segment]
+
+    # original word segments
+    words: typing.List[Segment]
 
     # number of stft frames in this example
     n_model_frames: int
@@ -141,26 +149,31 @@ class Aligner:
         batch, on the gpu. Backtracking is performed in a loop on the CPU.
         """
 
-        xs, ys = batch
+        xs, ys, ys_original = batch
         log_probs = self.logp(xs)
         alignments = []
         for i in range(len(ys)):
-            log_prob = log_probs[i]
             x = xs[i]
             y = ys[i]
+            y_original = ys_original[i]
+            log_prob = log_probs[i]
             tokens = self.tokens(y)
             trellis = build_trellis(log_prob, tokens)
             path = backtrack(trellis, log_prob, tokens)
-            char_segments = merge_repeats(path, y)
-            word_segments = merge_words(char_segments)
+            chars_cleaned = merge_repeats(path, y)
+            chars = align_clean_text(y, y_original, chars_cleaned)
+            words_cleaned = merge_words(chars_cleaned)
+            words = merge_words(chars, separator=" ")
             n_model_frames = trellis.shape[0] - 1
             n_audio_samples = x.shape[1]
             alignment = Alignment(
                 log_probs,
                 trellis,
                 path,
-                char_segments,
-                word_segments,
+                chars_cleaned,
+                chars,
+                words_cleaned,
+                words,
                 n_model_frames,
                 n_audio_samples,
                 self.sr,
@@ -298,3 +311,117 @@ def merge_words(segments, separator="|") -> typing.List[Segment]:
         else:
             i2 += 1
     return words
+
+
+def align_clean_text(
+    in_text: str, out_text: str, in_segs: typing.List[Segment],
+) -> typing.List[Segment]:
+    """Timething TTS models align on cleaned texts. In order to show
+    alignments in terms of the (uncleaned) input text, we have to match the
+    cleaned string to the input string. This match can then be used to impute
+    input text timecodes from the cleaned text timecodes.
+
+    Arguments:
+
+    in_text: str
+        The cleaned input string
+    out_text: str
+        The original, uncleaned input string
+    in_segs: typing.List[Segment]
+        Segmentation of the cleaned input string. Segmented on character level
+
+    Returns:
+
+    out_segs: typing.List[Segment]
+        Segmentation of the original un-cleaned input string, with adjusted
+        symbols and timecodes.
+    """
+
+    def clone(x, /, **changes):
+        return dataclasses.replace(x, **changes)
+
+    if not in_text:
+        return []
+
+    out_segs: typing.List[Segment] = []
+    i, j = 0, 0  # in_text[i], out_text[j]
+    in_seg, out_seg = None, None
+    edit_seg = None  # accrue edit segs here
+    leading_additions = ""  # leading with one or more additions
+    for d in diff(in_text, out_text.lower()):
+        # the TextCleaner uses text.casefold(). This lower-cases, but also
+        # normalises unicode, s.t. e.g. ß becomes ss. Since we don't want to
+        # change the number of characters here, we're just downcasing.
+        op = d[0]
+
+        if op != "+":
+            # moved in in_text
+            i += 1
+
+        if op != "-":
+            # moved in out_text
+            j += 1
+
+        in_seg = in_segs[i - 1]
+        out_char = out_text[j - 1]
+
+        if op == " " or op == "?":
+            if edit_seg:
+                out_segs.append(edit_seg)
+                edit_seg = None
+            if leading_additions:
+                out_char = leading_additions + out_char
+                leading_additions = ""
+            out_seg = clone(in_seg, label=out_char)
+            out_segs.append(out_seg)
+        else:
+            if op == "-":
+                if edit_seg:
+                    edit_seg.end = in_seg.end
+                else:
+                    edit_seg = clone(in_seg, label="")
+            if op == "+":
+                if edit_seg:
+                    edit_seg.label += out_char
+                elif out_seg:
+                    out_seg.label += out_char
+                else:
+                    # we started with a +
+                    leading_additions += out_char
+
+    if edit_seg and edit_seg.label:
+        out_segs.append(edit_seg)
+
+    # invariants
+    assert i == len(in_text)
+    assert j == len(out_text)
+
+    return out_segs
+
+
+def diff(a, b: str):
+    """Like difflib.ndiff, but streches of [+-]* are stably sorted to always
+    have deletions first, then inserts.
+    """
+
+    deletions = []
+    inserts = []
+    for d in ndiff(a, b):
+        op = d[0]
+        if op == "+":
+            inserts.append(d)
+            continue
+        elif op == "-":
+            deletions.append(d)
+            continue
+        elif deletions or inserts:
+            while deletions:
+                yield deletions.pop(0)
+            while inserts:
+                yield inserts.pop(0)
+        yield d
+
+    while deletions:
+        yield deletions.pop(0)
+    while inserts:
+        yield inserts.pop(0)

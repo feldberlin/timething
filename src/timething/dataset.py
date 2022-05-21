@@ -42,6 +42,9 @@ class Recording:
     # corresponding transcript
     transcript: str
 
+    # transcript before cleaning
+    original_transcript: str
+
     # the alignment for this recording, if present on disk
     alignment: typing.Optional[align.Alignment]
 
@@ -104,7 +107,14 @@ class SpeechDataset(Dataset):
                     self.alignments_path, alignment_id=record.id
                 )
 
-        return Recording(record.id, audio, transcript, alignment, sample_rate)
+        return Recording(
+            record.id,
+            audio,
+            transcript,
+            record.transcript,
+            alignment,
+            sample_rate,
+        )
 
     def __len__(self):
         "number of examples in this dataset"
@@ -133,9 +143,10 @@ def collate_fn(recordings: typing.List[Recording]):
     ids = [r.id for r in recordings]
     xs = [r.audio for r in recordings]
     ys = [r.transcript for r in recordings]
+    ys_original = [r.original_transcript for r in recordings]
 
     xs = [el.permute(1, 0) for el in xs]
     xs = rnn.pad_sequence(xs, batch_first=True)  # type: ignore
     xs = xs.permute(0, 2, 1)  # type: ignore
 
-    return xs, ys, ids
+    return xs, ys, ys_original, ids

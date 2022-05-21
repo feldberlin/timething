@@ -3,6 +3,7 @@ name: timething
 dependencies:
   - black
   - flake8
+  - hypothesis
   - ipykernel
   - ipython
   - isort

@@ -51,37 +51,26 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
     def rescale(n_model_frames: int) -> float:
         return alignment.model_frames_to_seconds(n_model_frames)
 
-    # character aligments
-    char_alignments = []
-    for segment in alignment.char_segments:
-        char_alignments.append(
+    def alignments(segments):
+        return [
             {
+                "label": segment.label,
                 "start": rescale(segment.start),
                 "end": rescale(segment.end),
-                "label": segment.label,
                 "score": segment.score,
             }
-        )
-
-    # character aligments
-    word_alignments = []
-    for segment in alignment.word_segments:
-        word_alignments.append(
-            {
-                "start": rescale(segment.start),
-                "end": rescale(segment.end),
-                "label": segment.label,
-                "score": segment.score,
-            }
-        )
+            for segment in segments
+        ]
 
     # combine the metadata
     meta = {
-        "char_alignments": char_alignments,
-        "word_alignments": word_alignments,
         "n_model_frames": alignment.n_model_frames,
         "n_audio_samples": alignment.n_audio_samples,
         "sampling_rate": alignment.sampling_rate,
+        "chars": alignments(alignment.chars),
+        "chars_cleaned": alignments(alignment.chars_cleaned),
+        "words": alignments(alignment.words),
+        "words_cleaned": alignments(alignment.words_cleaned),
     }
 
     # write any path components, e.g. for id 'audio/one.mp3.json'
@@ -90,7 +79,7 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
 
     # write the file
     with open(filename, "w", encoding="utf8") as f:
-        f.write(json.dumps(meta, indent=4, sort_keys=True, ensure_ascii=False))
+        f.write(json.dumps(meta, indent=4, ensure_ascii=False))
 
 
 def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
@@ -106,7 +95,9 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
         np.array([]),  # trellis
         np.array([]),  # backtracking path
         [],  # char segments
+        [],  # original char segments
         [],  # word segments
+        [],  # original word segments
         alignment_dict["n_model_frames"],
         alignment_dict["n_audio_samples"],
         alignment_dict["sampling_rate"],
@@ -123,13 +114,17 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
             score=d["score"],
         )
 
-    alignment.char_segments = [
-        dict_to_segment(d) for d in alignment_dict["char_alignments"]
+    alignment.chars_cleaned = [
+        dict_to_segment(d) for d in alignment_dict["chars_cleaned"]
     ]
 
-    alignment.word_segments = [
-        dict_to_segment(d) for d in alignment_dict["word_alignments"]
+    alignment.chars = [dict_to_segment(d) for d in alignment_dict["chars"]]
+
+    alignment.words_cleaned = [
+        dict_to_segment(d) for d in alignment_dict["words_cleaned"]
     ]
+
+    alignment.words = [dict_to_segment(d) for d in alignment_dict["words"]]
 
     return alignment
 
