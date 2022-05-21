@@ -11,7 +11,7 @@ def pause_durations(alignment: align.Alignment) -> typing.List[int]:
     Pause in number of frames after each word segment in the alignment
     """
 
-    segments = alignment.word_segments
+    segments = alignment.words_cleaned
     pauses = [y.start - x.end for (x, y) in zip(segments[:-1], segments[1:])]
     pause_end = alignment.n_model_frames - segments[-1].end
     pauses.append(pause_end)
@@ -28,7 +28,7 @@ def pause_cuts(
     """
 
     # word segments
-    word_segments = alignment.word_segments
+    word_segments = alignment.words_cleaned
     n_words = len(word_segments)
 
     # a list of pause durations between words

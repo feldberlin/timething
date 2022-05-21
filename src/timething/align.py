@@ -83,16 +83,16 @@ class Alignment:
     path: np.ndarray
 
     # character segments
-    char_segments: typing.List[Segment]
+    chars_cleaned: typing.List[Segment]
 
     # character segments without cleaning
-    original_char_segments: typing.List[Segment]
+    chars: typing.List[Segment]
 
     # word segments
-    word_segments: typing.List[Segment]
+    words_cleaned: typing.List[Segment]
 
     # original word segments
-    original_word_segments: typing.List[Segment]
+    words: typing.List[Segment]
 
     # number of stft frames in this example
     n_model_frames: int
@@ -160,24 +160,20 @@ class Aligner:
             tokens = self.tokens(y)
             trellis = build_trellis(log_prob, tokens)
             path = backtrack(trellis, log_prob, tokens)
-            char_segments = merge_repeats(path, y)
-            original_char_segments = align_original_text(
-                y, y_original, char_segments
-            )
-            word_segments = merge_words(char_segments)
-            original_word_segments = merge_words(
-                original_char_segments, separator=" "
-            )
+            chars_cleaned = merge_repeats(path, y)
+            chars = align_clean_text(y, y_original, chars_cleaned)
+            words_cleaned = merge_words(chars_cleaned)
+            words = merge_words(chars, separator=" ")
             n_model_frames = trellis.shape[0] - 1
             n_audio_samples = x.shape[1]
             alignment = Alignment(
                 log_probs,
                 trellis,
                 path,
-                char_segments,
-                original_char_segments,
-                word_segments,
-                original_word_segments,
+                chars_cleaned,
+                chars,
+                words_cleaned,
+                words,
                 n_model_frames,
                 n_audio_samples,
                 self.sr,
@@ -317,8 +313,8 @@ def merge_words(segments, separator="|") -> typing.List[Segment]:
     return words
 
 
-def align_original_text(
-    in_text: str, out_text: str, in_segments: typing.List[Segment],
+def align_clean_text(
+    in_text: str, out_text: str, in_segs: typing.List[Segment],
 ) -> typing.List[Segment]:
     """Timething TTS models align on cleaned texts. In order to show
     alignments in terms of the (uncleaned) input text, we have to match the
@@ -331,12 +327,12 @@ def align_original_text(
         The cleaned input string
     out_text: str
         The original, uncleaned input string
-    in_segments: typing.List[Segment]
+    in_segs: typing.List[Segment]
         Segmentation of the cleaned input string. Segmented on character level
 
     Returns:
 
-    out_segments: typing.List[Segment]
+    out_segs: typing.List[Segment]
         Segmentation of the original un-cleaned input string, with adjusted
         symbols and timecodes.
     """
@@ -347,10 +343,10 @@ def align_original_text(
     if not in_text:
         return []
 
-    out_segments: typing.List[Segment] = []
+    out_segs: typing.List[Segment] = []
     i, j = 0, 0  # in_text[i], out_text[j]
-    in_segment, out_segment = None, None
-    edit_segment = None  # accrue edit segments here
+    in_seg, out_seg = None, None
+    edit_seg = None  # accrue edit segs here
     leading_additions = ""  # leading with one or more additions
     for d in diff(in_text, out_text.lower()):
         # the TextCleaner uses text.casefold(). This lower-cases, but also
@@ -366,41 +362,41 @@ def align_original_text(
             # moved in out_text
             j += 1
 
-        in_segment = in_segments[i - 1]
+        in_seg = in_segs[i - 1]
         out_char = out_text[j - 1]
 
         if op == " " or op == "?":
-            if edit_segment:
-                out_segments.append(edit_segment)
-                edit_segment = None
+            if edit_seg:
+                out_segs.append(edit_seg)
+                edit_seg = None
             if leading_additions:
                 out_char = leading_additions + out_char
                 leading_additions = ""
-            out_segment = clone(in_segment, label=out_char)
-            out_segments.append(out_segment)
+            out_seg = clone(in_seg, label=out_char)
+            out_segs.append(out_seg)
         else:
             if op == "-":
-                if edit_segment:
-                    edit_segment.end = in_segment.end
+                if edit_seg:
+                    edit_seg.end = in_seg.end
                 else:
-                    edit_segment = clone(in_segment, label="")
+                    edit_seg = clone(in_seg, label="")
             if op == "+":
-                if edit_segment:
-                    edit_segment.label += out_char
-                elif out_segment:
-                    out_segment.label += out_char
+                if edit_seg:
+                    edit_seg.label += out_char
+                elif out_seg:
+                    out_seg.label += out_char
                 else:
                     # we started with a +
                     leading_additions += out_char
 
-    if edit_segment and edit_segment.label:
-        out_segments.append(edit_segment)
+    if edit_seg and edit_seg.label:
+        out_segs.append(edit_seg)
 
     # invariants
     assert i == len(in_text)
     assert j == len(out_text)
 
-    return out_segments
+    return out_segs
 
 
 def diff(a, b: str):

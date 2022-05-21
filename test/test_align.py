@@ -55,7 +55,7 @@ def test_align_cleaned_text():
         helper.segment("e!", 4, 5),
     ]
 
-    got = align.align_original_text(cleaned, original, cleaned_segments)
+    got = align.align_clean_text(cleaned, original, cleaned_segments)
     assert want == got
 
 
@@ -72,14 +72,14 @@ def test_align_cleaned_text_number():
         helper.segment("0", 0, 7),
     ]
 
-    got = align.align_original_text(cleaned, original, cleaned_segments)
+    got = align.align_clean_text(cleaned, original, cleaned_segments)
     assert want == got
 
 
 def test_align_cleaned_text_leading_addition():
     original, cleaned = "!A", "a"
     cleaned_segments = [helper.segment("a", 0, 1)]
-    got = align.align_original_text(cleaned, original, cleaned_segments)
+    got = align.align_clean_text(cleaned, original, cleaned_segments)
     want = [helper.segment("!A", 0, 1)]
     assert want == got
 
@@ -99,7 +99,7 @@ def test_align_cleaned_text_normalisation():
         helper.segment("ß", 4, 7),
     ]
 
-    got = align.align_original_text(cleaned, original, cleaned_segments)
+    got = align.align_clean_text(cleaned, original, cleaned_segments)
     assert want == got
 
 
@@ -108,5 +108,5 @@ def test_align_cleaned_text_recovers_original(out_text):
     in_text = helper.cleaner_en(out_text)
     if in_text:
         in_segs = helper.segments(list(in_text))
-        out_segs = align.align_original_text(in_text, out_text, in_segs)
+        out_segs = align.align_clean_text(in_text, out_text, in_segs)
         assert "".join([s.label for s in out_segs]) == out_text
