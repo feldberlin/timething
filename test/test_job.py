@@ -15,7 +15,7 @@ def test_job():
         assert len(ds) == 2
 
         print("setting up alignment job...")
-        j = job.Job(cfg, ds, tmp, batch_size=1, n_workers=1)
+        j = job.Job(cfg, ds, tmp, batch_size=1, n_workers=1, gpu=False)
 
         # construct the generic model text cleaner
         ds.clean_text_fn = text.TextCleaner(cfg.language, j.aligner.vocab())
