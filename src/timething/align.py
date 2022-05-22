@@ -337,7 +337,7 @@ def align_clean_text(
         symbols and timecodes.
     """
 
-    def clone(x, /, **changes):
+    def clone(x, **changes):
         return dataclasses.replace(x, **changes)
 
     if not in_text:

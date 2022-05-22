@@ -19,9 +19,10 @@ class Job:
         output_path: Path,
         batch_size: int,
         n_workers: int,
+        gpu: bool,
     ):
         self.cfg = cfg
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda" if torch.cuda.is_available() and gpu else "cpu"
         self.output_path = output_path
         self.aligner = align.Aligner.build(self.device, cfg)
         self.loader = DataLoader(

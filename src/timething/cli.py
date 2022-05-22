@@ -36,12 +36,20 @@ from timething import dataset, job, text, utils  # type: ignore
     type=int,
     help="Number of worker processes to use",
 )
+@click.option(
+    "--use-gpu",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Use the gpu, if set to true",
+)
 def main(
     model: str,
     metadata: str,
     alignments_dir: str,
     batch_size: int,
     n_workers: int,
+    use_gpu: bool,
 ):
     """Timething is a library for aligning text transcripts with audio.
 
@@ -65,6 +73,7 @@ def main(
         Path(alignments_dir),
         batch_size=batch_size,
         n_workers=n_workers,
+        gpu=use_gpu,
     )
 
     # construct the generic model text cleaner
