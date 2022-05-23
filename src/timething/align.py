@@ -297,7 +297,7 @@ def merge_words(segments, separator="|") -> typing.List[Segment]:
         if i2 >= len(segments) or segments[i2].label.endswith(separator):
             if i1 != i2:
                 segs = segments[i1 : i2 + 1]
-                word = "".join([seg.label for seg in segs]).rstrip()
+                word = "".join([seg.label for seg in segs]).rstrip(separator)
                 score = sum(seg.score * seg.length for seg in segs) / sum(
                     seg.length for seg in segs
                 )

@@ -1,4 +1,5 @@
 import helper
+import pytest
 import torch
 from hypothesis import given
 from hypothesis import strategies as st
@@ -127,12 +128,13 @@ def test_align_cleaned_text_commas():
     assert want == got
 
 
-def test_merge_words():
+@pytest.mark.parametrize("separator", [" ", "|"])
+def test_merge_words(separator):
     segs = [
         helper.segment("Y", 0, 1),
         helper.segment("e", 2, 3),
         helper.segment("s", 4, 5),
-        helper.segment(" ", 6, 7),
+        helper.segment(separator, 6, 7),
         helper.segment("n", 8, 9),
         helper.segment("o.", 10, 11),
     ]
@@ -142,9 +144,7 @@ def test_merge_words():
         helper.segment("no.", 8, 11),
     ]
 
-    got = align.merge_words(segs, separator=" ")
-    for g in got:
-        print(g)
+    got = align.merge_words(segs, separator=separator)
     assert got == want
 
 
