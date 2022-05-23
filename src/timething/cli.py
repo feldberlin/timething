@@ -41,7 +41,7 @@ from timething import dataset, job, text, utils  # type: ignore
     type=bool,
     default=True,
     show_default=True,
-    help="Use the gpu, if set to true",
+    help="Use the gpu, if we have one",
 )
 def main(
     model: str,
