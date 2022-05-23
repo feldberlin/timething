@@ -103,6 +103,70 @@ def test_align_cleaned_text_normalisation():
     assert want == got
 
 
+def test_align_cleaned_text_commas():
+    original, cleaned = "Yes, no.", "yes|no"
+    cleaned_segments = [
+        helper.segment("y", 0, 1),
+        helper.segment("e", 2, 3),
+        helper.segment("s", 4, 5),
+        helper.segment("|", 6, 7),
+        helper.segment("n", 8, 9),
+        helper.segment("o", 10, 11),
+    ]
+
+    want = [
+        helper.segment("Y", 0, 1),
+        helper.segment("e", 2, 3),
+        helper.segment("s", 4, 5),
+        helper.segment(", ", 6, 7),
+        helper.segment("n", 8, 9),
+        helper.segment("o.", 10, 11),
+    ]
+
+    got = align.align_clean_text(cleaned, original, cleaned_segments)
+    assert want == got
+
+
+def test_merge_words():
+    segs = [
+        helper.segment("Y", 0, 1),
+        helper.segment("e", 2, 3),
+        helper.segment("s", 4, 5),
+        helper.segment(" ", 6, 7),
+        helper.segment("n", 8, 9),
+        helper.segment("o.", 10, 11),
+    ]
+
+    want = [
+        helper.segment("Yes", 0, 5),
+        helper.segment("no.", 8, 11),
+    ]
+
+    got = align.merge_words(segs, separator=" ")
+    for g in got:
+        print(g)
+    assert got == want
+
+
+def test_merge_words_collapsed_space():
+    segs = [
+        helper.segment("Y", 0, 1),
+        helper.segment("e", 2, 3),
+        helper.segment("s", 4, 5),
+        helper.segment(", ", 6, 7),
+        helper.segment("n", 8, 9),
+        helper.segment("o.", 10, 11),
+    ]
+
+    want = [
+        helper.segment("Yes,", 0, 5),
+        helper.segment("no.", 8, 11),
+    ]
+
+    got = align.merge_words(segs, separator=" ")
+    assert got == want
+
+
 @given(out_text=st.text())
 def test_align_cleaned_text_recovers_original(out_text):
     in_text = helper.cleaner_en(out_text)
