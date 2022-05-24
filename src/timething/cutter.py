@@ -66,9 +66,12 @@ def pause_cuts(
 
 @dataclass
 class Cut:
+    """One or more cuts from a single Recording. Each cut segment contains
+    second units instead of model frames.
+    """
 
-    # the alignment that has been recut
-    alignment: align.Alignment
+    # the track id
+    id: str
 
     # one or more word level segments
     cuts: typing.List[align.Segment]
@@ -76,12 +79,12 @@ class Cut:
 
 def dataset_pause_cuts(
     ds: dataset.SpeechDataset,
-    cut_threshold_seconds: int = 8,
+    cut_threshold_seconds: float = 8,
     pause_threshold_model_frames: int = 20,
 ):
-    """
-    Apply pause cuts to an entire dataset. Applies only to recordings that are
-    longer than `cut_threshold_seconds`.
+    """Apply pause cuts to an entire dataset. Applies only to recordings that
+    are longer than `cut_threshold_seconds`. Cuts are made where
+    `pause_threshold_model_frames` is exceeded between words.
     """
 
     cuts = []
@@ -89,13 +92,30 @@ def dataset_pause_cuts(
         recording = ds[i]
         if recording.duration_seconds > cut_threshold_seconds:
 
-            # cut into smaller pieces if possible
-            segments = pause_cuts(
+            def rescale_seconds(n_frames: int) -> float:
+                return recording.alignment.model_frames_to_seconds(n_frames)
+
+            def rescale_n_samples(n_frames: int) -> int:
+                return recording.alignment.model_frames_to_n_samples(n_frames)
+
+            cuttings = pause_cuts(
                 recording.alignment,
                 pause_threshold_model_frames=pause_threshold_model_frames,
             )
 
-            # append result
-            cuts.append(Cut(recording.alignment, segments))
+            segments = []
+            for cutting in cuttings:
+                if rescale_seconds(cutting.length) <= cut_threshold_seconds:
+                    segments.append(
+                        align.Segment(
+                            cutting.label,
+                            rescale_n_samples(cutting.start),
+                            rescale_n_samples(cutting.end),
+                            cutting.score,
+                        )
+                    )
+
+            cut = Cut(recording.id, segments)
+            cuts.append(cut)
 
     return cuts

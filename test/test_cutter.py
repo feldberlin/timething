@@ -56,7 +56,7 @@ def test_dataset_cut():
     alignments_path = helper.fixtures / "alignments"
     ds = dataset.SpeechDataset(meta, 16000, alignments_path)
     cuts = cutter.dataset_pause_cuts(
-        ds, cut_threshold_seconds=0, pause_threshold_model_frames=1
+        ds, cut_threshold_seconds=0.15, pause_threshold_model_frames=1
     )
 
     # note that we can split up a single word, so the cutter just keeps things
@@ -64,5 +64,4 @@ def test_dataset_cut():
     assert len(cuts) == 2
     assert len(cuts[0].cuts) == 1
     assert cuts[0].cuts[0].label == "one"
-    assert len(cuts[1].cuts) == 1
-    assert cuts[1].cuts[0].label == "two"
+    assert len(cuts[1].cuts) == 0
