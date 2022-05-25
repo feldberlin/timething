@@ -74,7 +74,7 @@ def align(
     ds = dataset.SpeechDataset(Path(metadata), cfg.sampling_rate)
 
     # construct and run the job
-    click.echo("setting up aligment job...")
+    click.echo("setting up aligner...")
     j = job.Job(
         cfg,
         ds,
@@ -88,7 +88,7 @@ def align(
     ds.clean_text_fn = text.TextCleaner(cfg.language, j.aligner.vocab())
 
     # go
-    click.echo("starting aligment job...")
+    click.echo("starting aligment...")
     j.run()
 
 
@@ -129,8 +129,8 @@ def align(
     help="Relax the cut at the beginning and end by this no. of milliseconds",
 )
 def recut(
-    from_meta: str,
-    to_meta: str,
+    from_metadata: str,
+    to_metadata: str,
     alignments_dir: str,
     cut_threshold_seconds: float,
     pause_threshold_model_frames: int,
@@ -144,9 +144,10 @@ def recut(
     dataset with split audio and split texts.
     """
 
+    click.echo("starting re-cutting...")
     cutter.dataset_recut(
-        Path(from_meta),
-        Path(to_meta),
+        Path(from_metadata),
+        Path(to_metadata),
         Path(alignments_dir),
         cut_threshold_seconds,
         pause_threshold_model_frames,
