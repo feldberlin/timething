@@ -23,7 +23,7 @@ can then install it using pip:
 pip install timething
 ```
 
-## Running
+## Aligning recordings and transcripts
 
 Timething currently expects to find a folder containing one or more chapters
 in the following form:
@@ -53,13 +53,13 @@ audio/chapter03.mp3|The transcript for chapter03 on a single line here
 You can now run Timething on your CPU or GPU, for example:
 
 ```bash
-timething --metadata text.csv --alignments-dir aligned
+timething align --metadata text.csv --alignments-dir aligned
 ```
 
 You can also specify more options, e.g.:
 
 ```bash
-timething \
+timething align \
   --model german \
   --metadata text.csv \
   --alignments-dir aligned \
@@ -144,6 +144,23 @@ looks like:
     ]
 }
 ```
+
+## Re-cutting datasets
+
+Once you've run alignment, you can cut your files down to smaller files and
+write the results into a new folder. For example, if you don't want any of
+your recordings to exceed 8 seconds, then you can create a new directory and
+re-cut your data into it like this:
+
+```bash
+timething recut \
+  --from-meta text.csv \
+  --to-meta ~/smaller-recordings/text.csv \
+  --alignments-dir alignments \
+  --cut-threshold-seconds 8.0
+```
+
+Results in this example are written into ~/smaller-recordings.
 
 ## Supported languages
 

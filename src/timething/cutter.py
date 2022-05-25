@@ -83,8 +83,8 @@ class Cut:
 
 def dataset_pause_cuts(
     ds: dataset.SpeechDataset,
-    cut_threshold_seconds: float = 8,
-    pause_threshold_model_frames: int = 20,
+    cut_threshold_seconds: float,
+    pause_threshold_model_frames: int,
 ):
     """Apply pause cuts to an entire dataset. Applies only to recordings that
     are longer than `cut_threshold_seconds`. Cuts are made where
@@ -134,6 +134,10 @@ def dataset_recut(
     Recut the input dataset `from`, and write it out as a new dataset `to`.
     """
 
+    # target dataset dir
+    recut_dataset_dir = to_metadata.parent
+    recut_dataset_dir.mkdir(parents=True, exist_ok=True)
+
     # construct the source dataset
     ds = dataset.SpeechDataset(from_metadata, alignments_path=from_alignments)
 
@@ -159,7 +163,7 @@ def dataset_recut(
             cut_file = cut_path / f"{cut_id}-{i}.{cut_suffix}"
 
             # files
-            path = to_metadata.parent / cut_file
+            path = recut_dataset_dir / cut_file
             path.parent.mkdir(parents=True, exist_ok=True)
 
             # metadata
@@ -175,7 +179,8 @@ def dataset_recut(
 
             # files
             from_file = Path(from_metadata.parent / recording.id)
-            to_file = Path(to_metadata.parent / recording.id)
+            to_file = Path(recut_dataset_dir / recording.id)
+            to_file.parent.mkdir(parents=True, exist_ok=True)
 
             # metadata
             texts.append((recording.id, recording.original_transcript))
@@ -185,4 +190,4 @@ def dataset_recut(
 
     # write out new metadata
     df = pd.DataFrame.from_records(texts)
-    df.to_csv(to_metadata, sep="|", header=False)
+    df.to_csv(to_metadata, sep="|", header=False, index=False)

@@ -135,11 +135,7 @@ def csv(metadata: Path) -> typing.List[CSVRecord]:
 
 def read_meta(metadata: Path):
     "read in metadata csv"
-    return pd.read_csv(
-        metadata,
-        delimiter="|",
-        names=("id", "transcript")
-    )
+    return pd.read_csv(metadata, delimiter="|", names=("id", "transcript"))
 
 
 def collate_fn(recordings: typing.List[Recording]):
