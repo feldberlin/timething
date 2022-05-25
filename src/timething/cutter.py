@@ -127,8 +127,9 @@ def dataset_recut(
     from_metadata: Path,
     to_metadata: Path,
     from_alignments: Path,
-    cut_threshold_seconds: float = 8,
-    pause_threshold_model_frames: int = 20,
+    cut_threshold_seconds: float,
+    pause_threshold_model_frames: int,
+    padding_ms: int
 ):
     """
     Recut the input dataset `from`, and write it out as a new dataset `to`.
@@ -152,8 +153,10 @@ def dataset_recut(
     for cut in cuts:
         cut_ids.add(cut.id)
         for i, snip in enumerate(cut.cuts):
+            start = min(snip.start - padding_ms / 1000, 0)
+            end = snip.end + padding_ms / 1000
             ys, sr = utils.load_slice(
-                from_metadata.parent / cut.id, snip.start, snip.end,
+                from_metadata.parent / cut.id, start, end,
             )
 
             # wrangle ids

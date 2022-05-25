@@ -122,12 +122,19 @@ def align(
     type=int,
     help="Lowest value of model frames between words before snipping here.",
 )
+@click.option(
+    "--padding-ms",
+    default=20,
+    type=int,
+    help="Relax the cut at the beginning and end by this no. of milliseconds",
+)
 def recut(
     from_meta: str,
     to_meta: str,
     alignments_dir: str,
     cut_threshold_seconds: float,
-    pause_threshold_model_frames: int
+    pause_threshold_model_frames: int,
+    padding_ms: int,
 ):
     """Recut an existing dataset.
 
@@ -143,6 +150,7 @@ def recut(
         Path(alignments_dir),
         cut_threshold_seconds,
         pause_threshold_model_frames,
+        padding_ms,
     )
 
 

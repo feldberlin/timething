@@ -74,12 +74,14 @@ def test_dataset_recut():
         from_alignments = helper.fixtures / "alignments"
         cut_threshold_seconds = 0.15
         pause_threshold_model_frames = 1
+        padding_ms = 50
         cutter.dataset_recut(
             from_meta,
             to_meta,
             from_alignments,
             cut_threshold_seconds,
             pause_threshold_model_frames,
+            padding_ms,
         )
 
         # audio one exists
