@@ -145,7 +145,7 @@ looks like:
 }
 ```
 
-## Re-cutting datasets
+## Re-cutting recordings
 
 Once you've run alignment, you can cut your files down to smaller files and
 write the results into a new folder. For example, if you don't want any of
