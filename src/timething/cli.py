@@ -94,13 +94,13 @@ def align(
 
 @cli.command()
 @click.option(
-    "--from-meta",
+    "--from-metadata",
     required=True,
     type=click.Path(exists=True),
     help="Full path to the source dataset metadata csv.",
 )
 @click.option(
-    "--to-meta",
+    "--to-metadata",
     required=True,
     help="Full path to the destination dataset metadata csv; will be created.",
 )

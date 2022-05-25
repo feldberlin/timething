@@ -153,7 +153,7 @@ def dataset_recut(
     for cut in cuts:
         cut_ids.add(cut.id)
         for i, snip in enumerate(cut.cuts):
-            start = min(snip.start - padding_ms / 1000, 0)
+            start = max(snip.start - padding_ms / 1000, 0)
             end = snip.end + padding_ms / 1000
             ys, sr = utils.load_slice(
                 from_metadata.parent / cut.id, start, end,

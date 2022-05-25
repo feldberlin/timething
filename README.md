@@ -154,8 +154,8 @@ re-cut your data into it like this:
 
 ```bash
 timething recut \
-  --from-meta text.csv \
-  --to-meta ~/smaller-recordings/text.csv \
+  --from-metadata text.csv \
+  --to-metadata ~/smaller-recordings/text.csv \
   --alignments-dir alignments \
   --cut-threshold-seconds 8.0
 ```
