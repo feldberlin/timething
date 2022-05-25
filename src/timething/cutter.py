@@ -1,17 +1,21 @@
+import shutil
 import typing
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
+import pandas as pd
+import torchaudio
 
-from timething import align, dataset  # type: ignore
+from timething import align, dataset, utils  # type: ignore
 
 
-def pause_durations(alignment: align.Alignment) -> typing.List[int]:
+def pause_durations(alignment: align.Alignment) -> typing.List[float]:
     """
     Pause in number of frames after each word segment in the alignment
     """
 
-    segments = alignment.words_cleaned
+    segments = alignment.words
     pauses = [y.start - x.end for (x, y) in zip(segments[:-1], segments[1:])]
     pause_end = alignment.n_model_frames - segments[-1].end
     pauses.append(pause_end)
@@ -28,7 +32,7 @@ def pause_cuts(
     """
 
     # word segments
-    word_segments = alignment.words_cleaned
+    word_segments = alignment.words
     n_words = len(word_segments)
 
     # a list of pause durations between words
@@ -70,7 +74,7 @@ class Cut:
     second units instead of model frames.
     """
 
-    # the track id
+    # the recording id
     id: str
 
     # one or more word level segments
@@ -92,11 +96,8 @@ def dataset_pause_cuts(
         recording = ds[i]
         if recording.duration_seconds > cut_threshold_seconds:
 
-            def rescale_seconds(n_frames: int) -> float:
+            def rescale_seconds(n_frames: float) -> float:
                 return recording.alignment.model_frames_to_seconds(n_frames)
-
-            def rescale_n_samples(n_frames: int) -> int:
-                return recording.alignment.model_frames_to_n_samples(n_frames)
 
             cuttings = pause_cuts(
                 recording.alignment,
@@ -108,14 +109,80 @@ def dataset_pause_cuts(
                 if rescale_seconds(cutting.length) <= cut_threshold_seconds:
                     segments.append(
                         align.Segment(
-                            cutting.label,
-                            rescale_n_samples(cutting.start),
-                            rescale_n_samples(cutting.end),
-                            cutting.score,
+                            label=cutting.label,
+                            start=rescale_seconds(cutting.start),
+                            end=rescale_seconds(cutting.end),
+                            score=cutting.score,
                         )
                     )
 
-            cut = Cut(recording.id, segments)
-            cuts.append(cut)
+            if segments:
+                cut = Cut(recording.id, segments)
+                cuts.append(cut)
 
     return cuts
+
+
+def dataset_recut(
+    from_metadata: Path,
+    to_metadata: Path,
+    from_alignments: Path,
+    cut_threshold_seconds: float = 8,
+    pause_threshold_model_frames: int = 20,
+):
+    """
+    Recut the input dataset `from`, and write it out as a new dataset `to`.
+    """
+
+    # construct the source dataset
+    ds = dataset.SpeechDataset(from_metadata, alignments_path=from_alignments)
+
+    # newly cut tracks only
+    cuts = dataset_pause_cuts(
+        ds, cut_threshold_seconds, pause_threshold_model_frames
+    )
+
+    # save each snip in a separate file
+    texts = []
+    cut_ids = set()
+    for cut in cuts:
+        cut_ids.add(cut.id)
+        for i, snip in enumerate(cut.cuts):
+            ys, sr = utils.load_slice(
+                from_metadata.parent / cut.id, snip.start, snip.end,
+            )
+
+            # wrangle ids
+            cut_id = Path(cut.id).stem
+            cut_suffix = Path(cut.id).suffix.lstrip(".")
+            cut_path = Path(cut.id).parent
+            cut_file = cut_path / f"{cut_id}-{i}.{cut_suffix}"
+
+            # files
+            path = to_metadata.parent / cut_file
+            path.parent.mkdir(parents=True, exist_ok=True)
+
+            # metadata
+            texts.append((cut_file, snip.label))
+
+            # save the file
+            torchaudio.save(path, ys, sr, format=cut_suffix)
+
+    # copy over remaining files
+    for i in range(len(ds)):
+        recording = ds[i]
+        if recording.id not in cut_ids:
+
+            # files
+            from_file = Path(from_metadata.parent / recording.id)
+            to_file = Path(to_metadata.parent / recording.id)
+
+            # metadata
+            texts.append((recording.id, recording.original_transcript))
+
+            # copy the file
+            shutil.copy(from_file, to_file)
+
+    # write out new metadata
+    df = pd.DataFrame.from_records(texts)
+    df.to_csv(to_metadata, sep="|", header=False)

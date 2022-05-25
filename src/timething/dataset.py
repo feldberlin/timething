@@ -64,19 +64,17 @@ class SpeechDataset(Dataset):
     def __init__(
         self,
         metadata: Path,
-        resample_to: int,
+        resample_to: typing.Optional[int] = None,
         alignments_path: typing.Optional[Path] = None,
         clean_text_fn=None,
     ):
         self.resample_to = resample_to
         self.clean_text_fn = clean_text_fn
-        self.records = self.csv(metadata)
+        self.records = csv(metadata)
         self.alignments_path = alignments_path
 
     def __getitem__(self, idx):
-        """
-        Return a single (audio, transcript) example from the dataset
-        """
+        "Return a single (audio, transcript) example from the dataset"
 
         assert idx >= 0
         assert idx <= len(self)
@@ -122,24 +120,30 @@ class SpeechDataset(Dataset):
 
     def resample(self, sample_rate) -> bool:
         "should examples be resampled or not"
-        return sample_rate != self.resample_to
+        return self.resample_to is not None and sample_rate != self.resample_to
 
-    def csv(self, metadata: Path) -> typing.List[CSVRecord]:
-        "read in the dataset csv"
-        df = pd.read_csv(metadata, delimiter="|", names=("id", "transcript"))
-        records = []
-        for (_, row) in df.iterrows():
-            file_path = metadata.parent / row.id
-            records.append(CSVRecord(row.id, file_path, row.transcript))
 
-        return records
+def csv(metadata: Path) -> typing.List[CSVRecord]:
+    "read in the dataset csv"
+    records = []
+    for (_, row) in read_meta(metadata).iterrows():
+        file_path = metadata.parent / row.id
+        records.append(CSVRecord(row.id, file_path, row.transcript))
+
+    return records
+
+
+def read_meta(metadata: Path):
+    "read in metadata csv"
+    return pd.read_csv(
+        metadata,
+        delimiter="|",
+        names=("id", "transcript")
+    )
 
 
 def collate_fn(recordings: typing.List[Recording]):
-    """
-    Collate invididual examples into a single batch
-    """
-
+    "Collate invididual examples into a single batch"
     ids = [r.id for r in recordings]
     xs = [r.audio for r in recordings]
     ys = [r.transcript for r in recordings]

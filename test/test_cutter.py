@@ -1,4 +1,5 @@
 import helper
+import torchaudio
 
 from timething import align, cutter, dataset  # type: ignore
 
@@ -6,7 +7,7 @@ from timething import align, cutter, dataset  # type: ignore
 def test_pause_durations():
     alignment = helper.alignment(
         n_model_frames=30,
-        words_cleaned=[
+        words=[
             align.Segment("hello", 2, 8, 1.0),
             align.Segment("world", 11, 20, 1.0),
         ],
@@ -19,7 +20,7 @@ def test_pause_durations():
 def test_no_cut():
     alignment = helper.alignment(
         n_model_frames=30,
-        words_cleaned=[
+        words=[
             align.Segment("hello", 2, 8, 1.0),
             align.Segment("world", 11, 20, 1.0),
         ],
@@ -35,7 +36,7 @@ def test_no_cut():
 def test_one_cut():
     alignment = helper.alignment(
         n_model_frames=30,
-        words_cleaned=[
+        words=[
             align.Segment("hello", 2, 8, 1.0),
             align.Segment("world", 15, 30, 1.0),
         ],
@@ -61,7 +62,50 @@ def test_dataset_cut():
 
     # note that we can split up a single word, so the cutter just keeps things
     # as they are when applied to the fixtures dataset.
-    assert len(cuts) == 2
+    assert len(cuts) == 1
     assert len(cuts[0].cuts) == 1
-    assert cuts[0].cuts[0].label == "one"
-    assert len(cuts[1].cuts) == 0
+    assert cuts[0].cuts[0].label == "One!"
+
+
+def test_dataset_recut():
+    with helper.tempdir() as tmp:
+        from_meta = helper.fixtures / "text.csv"
+        to_meta = tmp / "recut.csv"
+        from_alignments = helper.fixtures / "alignments"
+        cut_threshold_seconds = 0.15
+        pause_threshold_model_frames = 1
+        cutter.dataset_recut(
+            from_meta,
+            to_meta,
+            from_alignments,
+            cut_threshold_seconds,
+            pause_threshold_model_frames,
+        )
+
+        # audio one exists
+        one_path = tmp / "audio" / "one-0.mp3"
+        one = torchaudio.info(one_path)
+        assert one.sample_rate == 44100
+        assert one.num_frames > 6000
+        assert one.num_channels == 2
+        assert one.encoding == "MP3"
+
+        # audio two exists
+        two_path = tmp / "audio" / "two.mp3"
+        two = torchaudio.info(two_path)
+        assert two.sample_rate == 44100
+        assert two.num_frames > 6000
+        assert two.num_channels == 2
+        assert two.encoding == "MP3"
+
+        # csv exists
+        df = dataset.read_meta(to_meta).set_index("id")
+        assert len(df) == 2
+
+        # text one exists
+        one_text = df.loc["audio/one-0.mp3"].transcript
+        assert one_text == "One!"
+
+        # text two exists
+        two_text = df.loc["audio/two.mp3"].transcript
+        assert two_text == "Two?"

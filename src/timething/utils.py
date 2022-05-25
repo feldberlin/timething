@@ -48,7 +48,7 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
     Write a custom json alignments file for a given aligned recording.
     """
 
-    def rescale(n_model_frames: int) -> float:
+    def rescale(n_model_frames: float) -> float:
         return alignment.model_frames_to_seconds(n_model_frames)
 
     def alignments(segments):

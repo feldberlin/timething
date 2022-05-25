@@ -41,10 +41,10 @@ class Segment:
     label: str
 
     # start offset in model frames in the audio
-    start: int
+    start: float
 
     # end offset in model frames in the audio
-    end: int
+    end: float
 
     # confidence score under the given ASR model
     score: float
@@ -103,21 +103,16 @@ class Alignment:
     # the sampling rate
     sampling_rate: int
 
-    def model_frames_to_fraction(self, n_frames):
+    def model_frames_to_fraction(self, n_frames) -> float:
         "Returns the fraction of the padded example at n_frames"
         return n_frames / self.n_model_frames
 
-    def model_frames_to_n_samples(self, n_frames):
-        "Returns the absolute offset in seconds at n_frames"
-        fraction = self.model_frames_to_fraction(n_frames)
-        return int(fraction * self.n_audio_samples)
-
-    def model_frames_to_seconds(self, n_frames):
+    def model_frames_to_seconds(self, n_frames) -> float:
         "Returns the absolute offset in seconds at n_frames"
         fraction = self.model_frames_to_fraction(n_frames)
         return fraction * self.n_audio_samples / self.sampling_rate
 
-    def seconds_to_model_frames(self, n_seconds):
+    def seconds_to_model_frames(self, n_seconds) -> int:
         "Returns the absolute offset in model frames at n_seconds"
         n_total_seconds = self.n_audio_samples / self.sampling_rate
         fraction = n_seconds / n_total_seconds

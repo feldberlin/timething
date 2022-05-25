@@ -34,10 +34,10 @@ def tempdir():
 
 
 def alignment(
-    words_cleaned: typing.List[align.Segment] = [],
-    chars_cleaned: typing.List[align.Segment] = [],
     words: typing.List[align.Segment] = [],
     chars: typing.List[align.Segment] = [],
+    words_cleaned: typing.List[align.Segment] = [],
+    chars_cleaned: typing.List[align.Segment] = [],
     n_model_frames: int = 30,
     n_audio_samples: int = 100,
     sampling_rate: int = 16000,
@@ -46,10 +46,10 @@ def alignment(
         log_probs=np.array([]),
         trellis=np.array([]),
         path=np.array([]),
-        chars_cleaned=chars_cleaned or [],
-        chars=chars or [],
         words_cleaned=words_cleaned or [],
         words=words or [],
+        chars_cleaned=chars_cleaned or [],
+        chars=chars or [],
         n_model_frames=n_model_frames,
         n_audio_samples=n_audio_samples,
         sampling_rate=sampling_rate,

@@ -24,11 +24,15 @@ def test_job():
         j.run()
 
         one = utils.read_alignment(tmp, "audio/one.mp3")
+        assert len(one.words) == 1
         assert len(one.words_cleaned) == 1
+        assert one.words[0].label == "One!"
         assert one.words_cleaned[0].label == "one"
         assert one.words_cleaned[0].score > 0.9
 
         two = utils.read_alignment(tmp, "audio/two.mp3")
+        assert len(two.words) == 1
         assert len(two.words_cleaned) == 1
+        assert two.words[0].label == "Two?"
         assert two.words_cleaned[0].label == "two"
         assert two.words_cleaned[0].score > 0.9
