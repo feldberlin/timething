@@ -45,6 +45,8 @@ def nums2words(text: str, lang: str):
         number = float(match.group(0))
         if number.is_integer() and number > 1800 and number < 2100:
             to = 'year'
+            number = int(number)
+
         return num2words(number, lang=lang, to=to)
 
     return re.sub(NUMS_RE, fn, text)

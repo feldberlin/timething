@@ -60,7 +60,7 @@ You can also specify more options, e.g.:
 
 ```bash
 timething align \
-  --model german \
+  --language german \
   --metadata text.csv \
   --alignments-dir aligned \
   --batch-size 8 \

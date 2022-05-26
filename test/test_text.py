@@ -30,3 +30,9 @@ def test_nums2words():
     got = text.nums2words("-11.2", lang="de")
     want = "minus elf Komma zwei"
     assert want == got
+
+
+def test_nums2words_year():
+    got = text.nums2words("geboren 1968 in Belgrad", lang="de")
+    want = "geboren neunzehnhundertachtundsechzig in Belgrad"
+    assert want == got

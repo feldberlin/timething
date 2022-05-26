@@ -15,7 +15,7 @@ def cli():
 
 @cli.command()
 @click.option(
-    "--model",
+    "--language",
     default="english",
     show_default=True,
     help="Key in timething/models.yaml.",
@@ -52,7 +52,7 @@ def cli():
     help="Use the gpu, if we have one",
 )
 def align(
-    model: str,
+    language: str,
     metadata: str,
     alignments_dir: str,
     batch_size: int,
@@ -67,8 +67,8 @@ def align(
     you provided.
     """
 
-    # retrieve the config for the given model
-    cfg = utils.load_config(model)
+    # retrieve the config for the given language
+    cfg = utils.load_config(language)
 
     # construct the dataset
     ds = dataset.SpeechDataset(Path(metadata), cfg.sampling_rate)

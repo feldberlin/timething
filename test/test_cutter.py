@@ -62,9 +62,12 @@ def test_dataset_cut():
 
     # note that we can split up a single word, so the cutter just keeps things
     # as they are when applied to the fixtures dataset.
-    assert len(cuts) == 1
+    assert len(cuts) == 2
     assert len(cuts[0].cuts) == 1
     assert cuts[0].cuts[0].label == "One!"
+    assert len(cuts[1].cuts) == 2
+    assert cuts[1].cuts[0].label == "in 1969"
+    assert cuts[1].cuts[1].label == "in"
 
 
 def test_dataset_recut():
@@ -98,8 +101,16 @@ def test_dataset_recut():
 
         # csv exists
         df = dataset.read_meta(to_meta).set_index("id")
-        assert len(df) == 1
+        assert len(df) == 3
 
         # text one exists
         one_text = df.loc["audio/one-0.mp3"].transcript
         assert one_text == "One!"
+
+        # text born snip one exists
+        born_text = df.loc["audio/born-0.mp3"].transcript
+        assert born_text == "in 1969"
+
+        # text born snip two exists
+        born_text = df.loc["audio/born-1.mp3"].transcript
+        assert born_text == "in"
