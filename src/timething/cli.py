@@ -124,7 +124,7 @@ def align(
 )
 @click.option(
     "--padding-ms",
-    default=20,
+    default=80,
     type=int,
     help="Relax the cut at the beginning and end by this no. of milliseconds",
 )
