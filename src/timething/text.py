@@ -8,8 +8,7 @@ NUMS_RE = re.compile(r"[-+]?(?:\d*\.\d+|\d+)")
 
 
 class TextCleaner:
-    """
-    A generic text cleaner. Langauge is an ISO 639-1 code
+    """A generic text cleaner. Langauge is an ISO 639-1 code
     """
 
     def __init__(self, language: str, vocab: typing.List[str]):
@@ -36,11 +35,16 @@ class TextCleaner:
 
 
 def nums2words(text: str, lang: str):
-    """
-    Replace number occurences with a corresponding text version.
+    """Replace number occurences with a corresponding text version.
+
+    Includes weak heuristics to identify years numbers, since these are
+    pronounced differently.
     """
 
-    def fn(match):
-        return num2words(float(match.group(0)), lang=lang)
+    def fn(match, to='cardinal'):
+        number = float(match.group(0))
+        if number.is_integer() and number > 1800 and number < 2100:
+            to = 'year'
+        return num2words(number, lang=lang, to=to)
 
     return re.sub(NUMS_RE, fn, text)
