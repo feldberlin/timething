@@ -92,22 +92,14 @@ def test_dataset_recut():
         assert one.num_channels == 2
         assert one.encoding == "MP3"
 
-        # audio two exists
+        # audio two does not exists
         two_path = tmp / "audio" / "two.mp3"
-        two = torchaudio.info(two_path)
-        assert two.sample_rate == 44100
-        assert two.num_frames > 6000
-        assert two.num_channels == 2
-        assert two.encoding == "MP3"
+        assert not two_path.exists()
 
         # csv exists
         df = dataset.read_meta(to_meta).set_index("id")
-        assert len(df) == 2
+        assert len(df) == 1
 
         # text one exists
         one_text = df.loc["audio/one-0.mp3"].transcript
         assert one_text == "One!"
-
-        # text two exists
-        two_text = df.loc["audio/two.mp3"].transcript
-        assert two_text == "Two?"

@@ -131,8 +131,11 @@ def dataset_recut(
     pause_threshold_model_frames: int,
     padding_ms: int
 ):
-    """
-    Recut the input dataset `from`, and write it out as a new dataset `to`.
+    """Recut the input dataset `from`, and write it out as a new dataset `to`.
+
+    Recordings which exceed cut_threshold_seconds are recut. Any resulting
+    snip that is shorter than cut_threshold_seconds is retained; everything
+    else is removed from the dataset.
     """
 
     # target dataset dir
@@ -178,18 +181,21 @@ def dataset_recut(
     # copy over remaining files
     for i in range(len(ds)):
         recording = ds[i]
-        if recording.id not in cut_ids:
+        if recording.id in cut_ids:
+            continue
+        if recording.duration_seconds > cut_threshold_seconds:
+            continue
 
-            # files
-            from_file = Path(from_metadata.parent / recording.id)
-            to_file = Path(recut_dataset_dir / recording.id)
-            to_file.parent.mkdir(parents=True, exist_ok=True)
+        # files
+        from_file = Path(from_metadata.parent / recording.id)
+        to_file = Path(recut_dataset_dir / recording.id)
+        to_file.parent.mkdir(parents=True, exist_ok=True)
 
-            # metadata
-            texts.append((recording.id, recording.original_transcript))
+        # metadata
+        texts.append((recording.id, recording.original_transcript))
 
-            # copy the file
-            shutil.copy(from_file, to_file)
+        # copy the file
+        shutil.copy(from_file, to_file)
 
     # write out new metadata
     df = pd.DataFrame.from_records(texts)
