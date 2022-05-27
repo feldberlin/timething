@@ -118,13 +118,15 @@ def test_align_cleaned_text_commas():
     want = [
         helper.segment("Y", 0, 1),
         helper.segment("e", 2, 3),
-        helper.segment("s", 4, 5),
-        helper.segment(", ", 6, 7),
+        helper.segment("s,", 4, 5),
+        helper.segment(" ", 6, 7),
         helper.segment("n", 8, 9),
         helper.segment("o.", 10, 11),
     ]
 
     got = align.align_clean_text(cleaned, original, cleaned_segments)
+    for g in got:
+        print(g)
     assert want == got
 
 

@@ -51,10 +51,11 @@ def test_job():
         ]
 
         # original
-        assert len(born.words) == 4
+        assert len(born.words) == 5
         assert [w.label for w in born.words] == [
             'Born',
-            'in 1969',
+            'in',
+            '1969',
             'in',
             'Belgrade.'
         ]

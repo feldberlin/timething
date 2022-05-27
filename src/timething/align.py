@@ -314,7 +314,7 @@ def merge_words(segments, separator="|") -> typing.List[Segment]:
 
 
 def align_clean_text(
-    in_text: str, out_text: str, in_segs: typing.List[Segment],
+    in_text: str, out_text: str, in_segs: typing.List[Segment], separator="|"
 ) -> typing.List[Segment]:
     """Timething TTS models align on cleaned texts. In order to show
     alignments in terms of the (uncleaned) input text, we have to match the
@@ -343,12 +343,17 @@ def align_clean_text(
     if not in_text:
         return []
 
+    # make ndiff's life a bit easier. We can recover the original characters
+    # from the out_text string, since we always maintain an index into it.
+    out_text_normalised = out_text.lower().replace(" ", separator)
+
+    # set up main loop
     out_segs: typing.List[Segment] = []
     i, j = 0, 0  # in_text[i], out_text[j]
     in_seg, out_seg = None, None
     edit_seg = None  # accrue edit segs here
     leading_additions = ""  # leading with one or more additions
-    for d in diff(in_text, out_text.lower()):
+    for d in diff(in_text, out_text_normalised):
         # the TextCleaner uses text.casefold(). This lower-cases, but also
         # normalises unicode, s.t. e.g. ß becomes ss. Since we don't want to
         # change the number of characters here, we're just downcasing.
