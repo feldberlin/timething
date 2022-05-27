@@ -12,7 +12,6 @@ def test_job():
 
         # set up dataset
         ds = dataset.SpeechDataset(metadata, cfg.sampling_rate)
-        assert len(ds) == 2
 
         print("setting up alignment job...")
         j = job.Job(cfg, ds, tmp, batch_size=1, n_workers=1, gpu=False)
@@ -36,3 +35,26 @@ def test_job():
         assert two.words[0].label == "Two?"
         assert two.words_cleaned[0].label == "two"
         assert two.words_cleaned[0].score > 0.9
+
+        born = utils.read_alignment(tmp, "audio/born.mp3")
+        assert born.words_cleaned[0].score > 0.8
+
+        # cleaned
+        assert len(born.words_cleaned) == 6
+        assert [w.label for w in born.words_cleaned] == [
+            'born',
+            'in',
+            'nineteen',
+            'sixty-nine',
+            'in',
+            'belgrade'
+        ]
+
+        # original
+        assert len(born.words) == 4
+        assert [w.label for w in born.words] == [
+            'Born',
+            'in 1969',
+            'in',
+            'Belgrade.'
+        ]

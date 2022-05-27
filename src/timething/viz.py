@@ -1,3 +1,7 @@
+"""
+Viz from the pytorch website. Original Author: Moto Hira <moto@fb.com>
+"""
+
 import matplotlib.pyplot as plt  # type: ignore
 
 
