@@ -42,20 +42,20 @@ def test_job():
         # cleaned
         assert len(born.words_cleaned) == 6
         assert [w.label for w in born.words_cleaned] == [
-            'born',
-            'in',
-            'nineteen',
-            'sixty-nine',
-            'in',
-            'belgrade'
+            "born",
+            "in",
+            "nineteen",
+            "sixty-nine",
+            "in",
+            "belgrade",
         ]
 
         # original
         assert len(born.words) == 5
         assert [w.label for w in born.words] == [
-            'Born',
-            'in',
-            '1969',
-            'in',
-            'Belgrade.'
+            "Born",
+            "in",
+            "1969",
+            "in",
+            "Belgrade.",
         ]

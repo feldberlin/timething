@@ -13,6 +13,9 @@ from timething import align  # type: ignore
 MODELS_YAML = "models.yaml"
 
 
+# config
+
+
 def load_config(model: str) -> align.Config:
     """
     Load config object for the given model key
@@ -28,6 +31,9 @@ def load_config(model: str) -> align.Config:
     )
 
 
+# audio
+
+
 def load_slice(filename: Path, start_seconds: float, end_seconds: float):
     """
     Load an audio slice from a seconds offset and duration using torchaudio.
@@ -41,6 +47,9 @@ def load_slice(filename: Path, start_seconds: float, end_seconds: float):
     end = int(end_seconds / seconds_per_frame)
     duration = end - start
     return torchaudio.load(filename, start, duration)
+
+
+# alignments
 
 
 def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
