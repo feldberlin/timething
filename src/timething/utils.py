@@ -1,10 +1,8 @@
-from pathlib import Path
 import importlib.resources as pkg_resources
-import itertools
 import json
+from pathlib import Path
 
 import numpy as np
-import torch
 import torchaudio  # type: ignore
 import yaml  # type: ignore
 
@@ -16,6 +14,7 @@ MODELS_YAML = "models.yaml"
 
 
 # config
+
 
 def load_config(model: str) -> align.Config:
     """
@@ -34,6 +33,7 @@ def load_config(model: str) -> align.Config:
 
 # audio
 
+
 def load_slice(filename: Path, start_seconds: float, end_seconds: float):
     """
     Load an audio slice from a seconds offset and duration using torchaudio.
@@ -50,6 +50,7 @@ def load_slice(filename: Path, start_seconds: float, end_seconds: float):
 
 
 # alignments
+
 
 def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
     """
@@ -144,13 +145,3 @@ def alignment_filename(path, id):
 
     filename = path / id
     return filename.parent / (filename.name + ".json")
-
-
-# ctc
-
-def decode_best(logprobs, vocab, delimiter="|"):
-    d = {v: k for (k, v) in vocab.items()}
-    x = torch.argmax(logprobs, dim=2)
-    tokens = [d[code.item()] for code in x.squeeze()]
-    transcript = ''.join(c for c, _ in itertools.groupby(tokens))
-    return " ".join(transcript.replace(d[0], '').split("|"))

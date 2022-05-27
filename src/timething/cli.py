@@ -2,7 +2,7 @@ from pathlib import Path
 
 import click
 
-from timething import dataset, job, text, utils, cutter  # type: ignore
+from timething import cutter, dataset, job, text, utils  # type: ignore
 
 
 @click.group()
@@ -156,4 +156,4 @@ def recut(
 
 
 if __name__ == "__main__":
-    cli(prog_name='timething')  # type: ignore
+    cli(prog_name="timething")  # type: ignore

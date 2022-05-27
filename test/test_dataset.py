@@ -13,14 +13,7 @@ def test_dataset_with_alignments():
     assert ds[1].alignment.words_cleaned[0].label == "two"
 
     got = [s.label for s in ds[2].alignment.words_cleaned]
-    want = [
-        "born",
-        "in",
-        "nineteen",
-        "sixty-nine",
-        "in",
-        "belgrade"
-    ]
+    want = ["born", "in", "nineteen", "sixty-nine", "in", "belgrade"]
 
     print(got)
     assert got == want

@@ -41,10 +41,10 @@ def nums2words(text: str, lang: str):
     pronounced differently.
     """
 
-    def fn(match, to='cardinal'):
+    def fn(match, to="cardinal"):
         number = float(match.group(0))
         if number.is_integer() and number > 1800 and number < 2100:
-            to = 'year'
+            to = "year"
             number = int(number)
 
         return num2words(number, lang=lang, to=to)
