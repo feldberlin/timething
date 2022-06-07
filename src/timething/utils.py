@@ -13,7 +13,7 @@ from timething import align  # type: ignore
 MODELS_YAML = "models.yaml"
 
 
-def load_config(model: str) -> align.Config:
+def load_config(model: str, k_shingles=5) -> align.Config:
     """
     Load config object for the given model key
     """
@@ -25,6 +25,7 @@ def load_config(model: str) -> align.Config:
         cfg[model]["pin"],
         cfg[model]["sampling_rate"],
         cfg[model]["language"],
+        k_shingles,
     )
 
 
@@ -67,6 +68,7 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
         "n_model_frames": alignment.n_model_frames,
         "n_audio_samples": alignment.n_audio_samples,
         "sampling_rate": alignment.sampling_rate,
+        "partition_score": alignment.partition_score,
         "chars": alignments(alignment.chars),
         "chars_cleaned": alignments(alignment.chars_cleaned),
         "words": alignments(alignment.words),
@@ -92,6 +94,7 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
 
     alignment = align.Alignment(
         np.array([]),  # log probs
+        "",  # recognised string
         np.array([]),  # trellis
         np.array([]),  # backtracking path
         [],  # char segments
@@ -101,6 +104,7 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
         alignment_dict["n_model_frames"],
         alignment_dict["n_audio_samples"],
         alignment_dict["sampling_rate"],
+        alignment_dict["partition_score"],
     )
 
     def rescale(n_seconds: int) -> int:

@@ -2,6 +2,7 @@
     "n_model_frames": 115,
     "n_audio_samples": 37184,
     "sampling_rate": 16000,
+    "partition_score": 0.7368421052631579,
     "chars": [
         {
             "label": "B",
