@@ -129,7 +129,7 @@ def dataset_recut(
     from_alignments: Path,
     cut_threshold_seconds: float,
     pause_threshold_model_frames: int,
-    padding_ms: int
+    padding_ms: int,
 ):
     """Recut the input dataset `from`, and write it out as a new dataset `to`.
 

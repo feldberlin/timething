@@ -2,7 +2,7 @@ from pathlib import Path
 
 import click
 
-from timething import dataset, job, text, utils, cutter  # type: ignore
+from timething import cutter, dataset, job, text, utils  # type: ignore
 
 
 @click.group()
@@ -51,6 +51,13 @@ def cli():
     show_default=True,
     help="Use the gpu, if we have one",
 )
+@click.option(
+    "--k-shingles",
+    type=int,
+    default=5,
+    show_default=True,
+    help="Number of shingles to use for the partition score",
+)
 def align(
     language: str,
     metadata: str,
@@ -58,6 +65,7 @@ def align(
     batch_size: int,
     n_workers: int,
     use_gpu: bool,
+    k_shingles: int,
 ):
     """Align text transcripts with audio.
 
@@ -68,7 +76,7 @@ def align(
     """
 
     # retrieve the config for the given language
-    cfg = utils.load_config(language)
+    cfg = utils.load_config(language, k_shingles)
 
     # construct the dataset
     ds = dataset.SpeechDataset(Path(metadata), cfg.sampling_rate)
@@ -85,7 +93,7 @@ def align(
     )
 
     # construct the generic model text cleaner
-    ds.clean_text_fn = text.TextCleaner(cfg.language, j.aligner.vocab())
+    ds.clean_text_fn = text.TextCleaner(cfg.language, j.aligner.vocab)
 
     # go
     click.echo("starting aligment...")
@@ -156,4 +164,4 @@ def recut(
 
 
 if __name__ == "__main__":
-    cli(prog_name='timething')  # type: ignore
+    cli(prog_name="timething")  # type: ignore

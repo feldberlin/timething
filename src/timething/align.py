@@ -13,6 +13,8 @@ import numpy as np
 import torch
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor  # type: ignore
 
+from timething import text
+
 
 @dataclass
 class Config:
@@ -28,6 +30,9 @@ class Config:
 
     # language code
     language: str
+
+    # k-shingles for partition score
+    k_shingles: int
 
 
 @dataclass
@@ -76,6 +81,9 @@ class Alignment:
     # log scale probabilities of characters over frames
     log_probs: np.ndarray
 
+    # asr results with best decoding
+    recognised: str
+
     # hmm-like trellis for viterbi
     trellis: np.ndarray
 
@@ -103,6 +111,9 @@ class Alignment:
     # the sampling rate
     sampling_rate: int
 
+    # how well do the audio and transcript match in this example
+    partition_score: float
+
     def model_frames_to_fraction(self, n_frames) -> float:
         "Returns the fraction of the padded example at n_frames"
         return n_frames / self.n_model_frames
@@ -124,11 +135,12 @@ class Aligner:
     Align the given transcription to the given audio file.
     """
 
-    def __init__(self, device, processor, model, sr=16000):
-        self.sr = sr
+    def __init__(self, device, processor, model, sr=16000, k_shingles=5):
         self.device = device
         self.processor = processor
         self.model = model
+        self.sr = sr
+        self.k_shingles = k_shingles
 
     @staticmethod
     def build(device, cfg: Config):
@@ -140,6 +152,8 @@ class Aligner:
             Wav2Vec2ForCTC.from_pretrained(
                 cfg.hugging_model, revision=cfg.hugging_pin
             ).to(device),
+            cfg.sampling_rate,
+            cfg.k_shingles,
         )
 
     def align(self, batch) -> typing.List[Alignment]:
@@ -155,8 +169,10 @@ class Aligner:
         for i in range(len(ys)):
             x = xs[i]
             y = ys[i]
+            y_whitespace = y.replace("|", " ").strip()
             y_original = ys_original[i]
             log_prob = log_probs[i]
+            recognised = text.best_ctc(log_prob, self.dictionary, self.blank)
             tokens = self.tokens(y)
             trellis = build_trellis(log_prob, tokens)
             path = backtrack(trellis, log_prob, tokens)
@@ -168,6 +184,7 @@ class Aligner:
             n_audio_samples = x.shape[1]
             alignment = Alignment(
                 log_probs,
+                recognised,
                 trellis,
                 path,
                 chars_cleaned,
@@ -177,6 +194,9 @@ class Aligner:
                 n_model_frames,
                 n_audio_samples,
                 self.sr,
+                text.similarity(
+                    recognised.strip(), y_whitespace, self.k_shingles
+                ),
             )
 
             alignments.append(alignment)
@@ -201,15 +221,21 @@ class Aligner:
 
         return log_probs.cpu().detach()
 
+    @property
     def vocab(self):
         return self.processor.tokenizer.get_vocab()
 
+    @property
     def dictionary(self):
-        return {c: i for i, c in enumerate(self.vocab())}
+        return {c: i for i, c in self.vocab.items()}
+
+    @property
+    def blank(self):
+        return self.dictionary[0]
 
     def tokens(self, y: str):
-        d = self.dictionary()
-        return [d[c] for c in y]
+        v = self.vocab
+        return [v[c] for c in y]
 
 
 def build_trellis(emission, tokens, blank_id=0):

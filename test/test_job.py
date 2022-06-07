@@ -17,7 +17,7 @@ def test_job():
         j = job.Job(cfg, ds, tmp, batch_size=1, n_workers=1, gpu=False)
 
         # construct the generic model text cleaner
-        ds.clean_text_fn = text.TextCleaner(cfg.language, j.aligner.vocab())
+        ds.clean_text_fn = text.TextCleaner(cfg.language, j.aligner.vocab)
 
         # align
         j.run()
@@ -42,20 +42,20 @@ def test_job():
         # cleaned
         assert len(born.words_cleaned) == 6
         assert [w.label for w in born.words_cleaned] == [
-            'born',
-            'in',
-            'nineteen',
-            'sixty-nine',
-            'in',
-            'belgrade'
+            "born",
+            "in",
+            "nineteen",
+            "sixty-nine",
+            "in",
+            "belgrade",
         ]
 
         # original
         assert len(born.words) == 5
         assert [w.label for w in born.words] == [
-            'Born',
-            'in',
-            '1969',
-            'in',
-            'Belgrade.'
+            "Born",
+            "in",
+            "1969",
+            "in",
+            "Belgrade.",
         ]

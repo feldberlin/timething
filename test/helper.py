@@ -41,9 +41,12 @@ def alignment(
     n_model_frames: int = 30,
     n_audio_samples: int = 100,
     sampling_rate: int = 16000,
+    partition_score: float = 1.0,
+    recognised: str = "",
 ):
     return align.Alignment(
         log_probs=np.array([]),
+        recognised=recognised,
         trellis=np.array([]),
         path=np.array([]),
         words_cleaned=words_cleaned or [],
@@ -53,6 +56,7 @@ def alignment(
         n_model_frames=n_model_frames,
         n_audio_samples=n_audio_samples,
         sampling_rate=sampling_rate,
+        partition_score=partition_score,
     )
 
 

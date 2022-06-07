@@ -125,8 +125,6 @@ def test_align_cleaned_text_commas():
     ]
 
     got = align.align_clean_text(cleaned, original, cleaned_segments)
-    for g in got:
-        print(g)
     assert want == got
 
 
