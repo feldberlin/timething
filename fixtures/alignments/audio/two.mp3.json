@@ -1,8 +1,10 @@
 {
+    "id": "audio/two.mp3",
     "n_model_frames": 115,
     "n_audio_samples": 37184,
     "sampling_rate": 16000,
     "partition_score": 1.0,
+    "recognised": "two ",
     "chars": [
         {
             "label": "T",

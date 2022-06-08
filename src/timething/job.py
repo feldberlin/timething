@@ -36,7 +36,7 @@ class Job:
     def run(self):
         total = len(self.loader)
         for xs, ys, ys_original, ids in tqdm(self.loader, total=total):
-            alignments = self.aligner.align((xs, ys, ys_original))
+            alignments = self.aligner.align((xs, ys, ys_original, ids))
 
             # write the alignments
             for i, id in enumerate(ids):

@@ -78,6 +78,9 @@ class Point:
 @dataclass
 class Alignment:
 
+    # example identifier
+    id: str
+
     # log scale probabilities of characters over frames
     log_probs: np.ndarray
 
@@ -163,14 +166,15 @@ class Aligner:
         batch, on the gpu. Backtracking is performed in a loop on the CPU.
         """
 
-        xs, ys, ys_original = batch
+        xs, ys, ys_original, ids = batch
         log_probs = self.logp(xs)
         alignments = []
         for i in range(len(ys)):
             x = xs[i]
             y = ys[i]
-            y_whitespace = y.replace("|", " ").strip()
+            id = ids[i]
             y_original = ys_original[i]
+            y_whitespace = y.replace("|", " ").strip()
             log_prob = log_probs[i]
             recognised = text.best_ctc(log_prob, self.dictionary, self.blank)
             tokens = self.tokens(y)
@@ -183,6 +187,7 @@ class Aligner:
             n_model_frames = trellis.shape[0] - 1
             n_audio_samples = x.shape[1]
             alignment = Alignment(
+                id,
                 log_probs,
                 recognised,
                 trellis,

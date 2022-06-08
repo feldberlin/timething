@@ -43,8 +43,10 @@ def alignment(
     sampling_rate: int = 16000,
     partition_score: float = 1.0,
     recognised: str = "",
+    id: str = "test-alignment"
 ):
     return align.Alignment(
+        id,
         log_probs=np.array([]),
         recognised=recognised,
         trellis=np.array([]),

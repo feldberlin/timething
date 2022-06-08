@@ -65,10 +65,12 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
 
     # combine the metadata
     meta = {
+        "id": alignment.id,
         "n_model_frames": alignment.n_model_frames,
         "n_audio_samples": alignment.n_audio_samples,
         "sampling_rate": alignment.sampling_rate,
         "partition_score": alignment.partition_score,
+        "recognised": alignment.recognised,
         "chars": alignments(alignment.chars),
         "chars_cleaned": alignments(alignment.chars_cleaned),
         "words": alignments(alignment.words),
@@ -93,8 +95,9 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
         alignment_dict = json.load(f)
 
     alignment = align.Alignment(
+        alignment_dict["id"],
         np.array([]),  # log probs
-        "",  # recognised string
+        alignment_dict["recognised"],  # recognised string
         np.array([]),  # trellis
         np.array([]),  # backtracking path
         [],  # char segments
