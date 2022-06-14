@@ -62,6 +62,7 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
                 "start": rescale(segment.start),
                 "end": rescale(segment.end),
                 "score": segment.score,
+                "score_geometric": segment.geometric_score,
             }
             for segment in segments
         ]
@@ -73,6 +74,8 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
         "n_audio_samples": alignment.n_audio_samples,
         "sampling_rate": alignment.sampling_rate,
         "partition_score": alignment.partition_score,
+        "alignment_score": alignment.alignment_score,
+        "alignment_probability": alignment.alignment_probability,
         "recognised": alignment.recognised,
         "chars": alignments(alignment.chars),
         "chars_cleaned": alignments(alignment.chars_cleaned),
@@ -99,10 +102,9 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
 
     alignment = align.Alignment(
         alignment_dict["id"],
-        np.array([]),  # log probs
+        np.array([]),  # scores
         alignment_dict["recognised"],  # recognised string
-        np.array([]),  # trellis
-        np.array([]),  # backtracking path
+        [],  # path
         [],  # char segments
         [],  # original char segments
         [],  # word segments
@@ -111,6 +113,8 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
         alignment_dict["n_audio_samples"],
         alignment_dict["sampling_rate"],
         alignment_dict["partition_score"],
+        alignment_dict["alignment_score"],
+        alignment_dict["alignment_probability"],
     )
 
     def rescale(n_seconds: int) -> int:
@@ -122,6 +126,7 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
             end=rescale(d["end"]),
             label=d["label"],
             score=d["score"],
+            geometric_score=d["score_geometric"],
         )
 
     alignment.chars_cleaned = [

@@ -27,6 +27,8 @@ def test_job():
         assert len(one.words_cleaned) == 1
         assert one.words[0].label == "One!"
         assert one.words_cleaned[0].label == "one"
+
+        # score for the word is product of char level probabilities.
         assert one.words_cleaned[0].score > 0.9
 
         two = utils.read_alignment(tmp, "audio/two.mp3")

@@ -8,8 +8,8 @@ def test_read_write_alignment_roundtrip():
         alignment = helper.alignment(
             n_model_frames=30,
             words_cleaned=[
-                align.Segment("hello", 2, 8, 1.0),
-                align.Segment("world", 11, 20, 1.0),
+                align.Segment("hello", 2, 8, 1.0, 1.0),
+                align.Segment("world", 11, 20, 1.0, 1.0),
             ],
         )
 
