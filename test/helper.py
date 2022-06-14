@@ -42,32 +42,56 @@ def alignment(
     n_audio_samples: int = 100,
     sampling_rate: int = 16000,
     partition_score: float = 1.0,
+    alignment_score: float = 1.0,
+    alignment_probability: float = 1.0,
     recognised: str = "",
     id: str = "test-alignment",
 ):
+
     return align.Alignment(
         id,
-        log_probs=np.array([]),
+        scores=np.array([]),
         recognised=recognised,
-        trellis=np.array([]),
-        path=np.array([]),
-        words_cleaned=words_cleaned or [],
-        words=words or [],
+        path=[],
         chars_cleaned=chars_cleaned or [],
         chars=chars or [],
+        words_cleaned=words_cleaned or [],
+        words=words or [],
         n_model_frames=n_model_frames,
         n_audio_samples=n_audio_samples,
         sampling_rate=sampling_rate,
         partition_score=partition_score,
+        alignment_score=alignment_score,
+        alignment_probability=alignment_probability,
     )
 
 
-def segment(label: str, start: int, end: int, score: float = 1.0):
-    return align.Segment(label, start, end, score)
+def segment(
+    label: str,
+    start: int,
+    end: int,
+    score: float = 1.0,
+    geometric_score: float = 1.0,
+):
+    return align.Segment(label, start, end, score, geometric_score)
 
 
 def segments(labels):
     return [segment(label, i, i + 1, 1.0) for i, label in enumerate(labels)]
+
+
+def segments_eq(a, b):
+    return (
+        a.label == b.label
+        and a.start == b.start
+        and a.end == b.end
+        and abs(a.score - b.score) < 10e-10
+        and abs(a.geometric_score - b.geometric_score) < 10e-10
+    )
+
+
+def segment_lists_eq(a_list, b_list):
+    return all(segments_eq(a, b) for (a, b) in zip(a_list, b_list))
 
 
 @dataclass

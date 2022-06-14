@@ -61,7 +61,7 @@ def pause_cuts(
     for (i, j) in bounds:
         label = " ".join([w.label for w in word_segments[i : j + 1]])
         segment = align.Segment(
-            label, word_segments[i].start, word_segments[j].end, 1.0
+            label, word_segments[i].start, word_segments[j].end, 1.0, 1.0
         )
         cuts.append(segment)
 
@@ -113,6 +113,7 @@ def dataset_pause_cuts(
                             start=rescale_seconds(cutting.start),
                             end=rescale_seconds(cutting.end),
                             score=cutting.score,
+                            geometric_score=cutting.geometric_score,
                         )
                     )
 
