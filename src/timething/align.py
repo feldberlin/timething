@@ -1,7 +1,5 @@
 """
-Forced Alignment with Wav2Vec2
-
-Adapted from the pytorch website. Original Author: Moto Hira <moto@fb.com>
+Forced Alignment with Wav2Vec2.
 """
 
 import dataclasses
@@ -36,10 +34,27 @@ class Config:
 
 
 @dataclass
-class Segment:
+class BestPath:
+    """Optimal alignment up to position i_transcript in transcription tokens
+    and up to i_frame in audio frames.
     """
-    A segment of one or more characters, mapped to a single range of audio.
-    Includes a confidence score under the ASR model.
+
+    # index into the transcript tokens
+    i_transcript: int
+
+    # index into model audio frames
+    i_frame: int
+
+    # optimal score up to (i_transcript, i_frame) subproblem
+    score: float
+
+    # score for this token at this frame under the CTC model
+    frame_score: float
+
+
+@dataclass
+class Segment:
+    """A segment of one or more characters, mapped to a single range of audio.
     """
 
     # the string of characters in the segment
@@ -60,38 +75,19 @@ class Segment:
 
 
 @dataclass
-class Point:
-    """
-    A single point on the alignment path. Used in backtracking
-    """
-
-    # point index on the alphabet axis
-    token_index: int
-
-    # point index on the time axis
-    time_index: int
-
-    # score under the given ASR model
-    score: float
-
-
-@dataclass
 class Alignment:
 
     # example identifier
     id: str
 
     # log scale probabilities of characters over frames
-    log_probs: np.ndarray
+    scores: np.ndarray
 
     # asr results with best decoding
     recognised: str
 
-    # hmm-like trellis for viterbi
-    trellis: np.ndarray
-
-    # path found through the trellis
-    path: np.ndarray
+    # optimal alignment
+    path: typing.List[BestPath]
 
     # character segments
     chars_cleaned: typing.List[Segment]
@@ -134,8 +130,7 @@ class Alignment:
 
 
 class Aligner:
-    """
-    Align the given transcription to the given audio file.
+    """Align the given transcription to the given audio file.
     """
 
     def __init__(self, device, processor, model, sr=16000, k_shingles=5):
@@ -160,51 +155,64 @@ class Aligner:
         )
 
     def align(self, batch) -> typing.List[Alignment]:
-        """
-        Align the audio and the transcripts in the batch. Returns a list of
-        aligments, one per example. CTC probablities are processed in a single
-        batch, on the gpu. Backtracking is performed in a loop on the CPU.
+        """Align the audio and the transcripts in the batch.
+
+        Returns a list of aligments, one per example. CTC probablities are
+        processed in a single batch, on the gpu. Backtracking is performed in
+        a loop on the CPU.
         """
 
         xs, ys, ys_original, ids = batch
-        log_probs = self.logp(xs)
+        scores_batched = self.logp(xs)
         alignments = []
         for i in range(len(ys)):
+
+            # i_th recording in the batch
             x = xs[i]
             y = ys[i]
             id = ids[i]
             y_original = ys_original[i]
-            y_whitespace = y.replace("|", " ").strip()
-            log_prob = log_probs[i]
-            recognised = text.best_ctc(log_prob, self.dictionary, self.blank)
-            tokens = self.tokens(y)
-            trellis = build_trellis(log_prob, tokens)
-            path = backtrack(trellis, log_prob, tokens)
-            chars_cleaned = merge_repeats(path, y)
-            chars = align_clean_text(y, y_original, chars_cleaned)
-            words_cleaned = merge_words(chars_cleaned)
-            words = merge_words(chars, separator=" ")
-            n_model_frames = trellis.shape[0] - 1
+            scores = scores_batched[i].T
+
+            # metadata
+            n_model_frames = scores.shape[1]
             n_audio_samples = x.shape[1]
-            alignment = Alignment(
-                id,
-                log_probs,
-                recognised,
-                trellis,
-                path,
-                chars_cleaned,
-                chars,
-                words_cleaned,
-                words,
-                n_model_frames,
-                n_audio_samples,
-                self.sr,
-                text.similarity(
-                    recognised.strip(), y_whitespace, self.k_shingles
-                ),
+
+            # asr
+            recognised = text.best_ctc(scores, self.dictionary)
+            y_whitespace = y.replace("|", " ").strip()
+            partition_score = text.similarity(
+                recognised.strip(), y_whitespace, self.k_shingles
             )
 
-            alignments.append(alignment)
+            # align
+            path = best(scores, self.tokens(y), self.blank_id)
+
+            # char results
+            chars_cleaned = to_segments(path, y)
+            chars = align_clean_text(y, y_original, chars_cleaned)
+
+            # word results
+            words_cleaned = to_words(chars_cleaned)
+            words = to_words(chars, separator=" ")
+
+            # append to batch
+            alignments.append(
+                Alignment(
+                    id,
+                    scores,
+                    recognised,
+                    path,
+                    chars_cleaned,
+                    chars,
+                    words_cleaned,
+                    words,
+                    n_model_frames,
+                    n_audio_samples,
+                    self.sr,
+                    partition_score,
+                )
+            )
 
         return alignments
 
@@ -226,6 +234,10 @@ class Aligner:
 
         return log_probs.cpu().detach()
 
+    def tokens(self, y: str):
+        v = self.vocab
+        return [v[c] for c in y]
+
     @property
     def vocab(self):
         return self.processor.tokenizer.get_vocab()
@@ -235,112 +247,162 @@ class Aligner:
         return {c: i for i, c in self.vocab.items()}
 
     @property
-    def blank(self):
-        return self.dictionary[0]
+    def blank_id(self):
+        return self.vocab[text.BLANK_TOKEN]
 
-    def tokens(self, y: str):
-        v = self.vocab
-        return [v[c] for c in y]
-
-
-def build_trellis(emission, tokens, blank_id=0):
-    num_frame = emission.size(0)
-    num_tokens = len(tokens)
-
-    # Trellis has extra diemsions for both time axis and tokens.
-    # The extra dim for tokens represents <SoS> (start-of-sentence)
-    # The extra dim for time axis is for simplification of the code.
-    trellis = torch.full((num_frame + 1, num_tokens + 1), -float("inf"))
-    trellis[:, 0] = 0
-    for t in range(num_frame):
-        trellis[t + 1, 1:] = torch.maximum(
-            # Score for staying at the same token
-            trellis[t, 1:] + emission[t, blank_id],
-            # Score for changing to the next token
-            trellis[t, :-1] + emission[t, tokens],
-        )
-    return trellis
+    @property
+    def sos_id(self):
+        return self.vocab[text.SOS_TOKEN]
 
 
-def backtrack(trellis, emission, tokens, blank_id=0):
-    # Note:
-    # j and t are indices for trellis, which has extra dimensions
-    # for time and tokens at the beginning.
-    # When referring to time frame index `T` in trellis,
-    # the corresponding index in emission is `T-1`.
-    # Similarly, when referring to token index `J` in trellis,
-    # the corresponding index in transcript is `J-1`.
-    j = trellis.size(1) - 1
-    t_start = torch.argmax(trellis[:, j]).item()
+def best(
+    scores: np.ndarray, tokens: typing.List[int], blank_id: int
+) -> typing.List[BestPath]:
+    """Return the optimal alignment score of `tokens` aligned vs `scores`.
 
-    path = []
-    for t in range(t_start, 0, -1):
+    This is a bottom up dynamic programing implementation of the following
+    recurrence:
 
-        # 1. Figure out if the current position was stay or change
-        # `emission[J-1]` is the emission at time frame `J` of trellis dim.
-        # Score for token staying the same from time frame J-1 to T.
-        stayed = trellis[t - 1, j] + emission[t - 1, blank_id]
-        # Score for token changing from C-1 at T-1 to J at T.
-        changed = trellis[t - 1, j - 1] + emission[t - 1, tokens[j - 1]]
+    ```
+    best(i_text, 0) = scores[text[i_text], 0]
+    best(i_text, i_frame) = max(
+        best(i_text, i_frame - 1) * scores[blank_id, i_frame]
+        best(i_text, i_frame - 1) * scores[text[i_text], i_frame]
+    )
+    ```
 
-        # 2. Store the path with frame-wise probability.
-        prob = (
-            emission[t - 1, tokens[j - 1] if changed > stayed else 0]
-            .exp()
-            .item()
-        )
-        # Return token index and time index in non-trellis coordinate.
-        path.append(Point(j - 1, t - 1, prob))
+    With the provision:
 
-        # 3. Update the token
-        if changed > stayed:
-            j -= 1
-            if j == 0:
-                break
-    else:
-        raise ValueError("Failed to align")
-    return path[::-1]
+    ```
+    best(i_text > i_frame or i_text < 0) = -np.inf
+    ```
+
+    Arguments:
+
+      scores: a `n_tokens` x `n_frames` table where each element represents
+              the score of a given token at a given frame. Scores are log
+              probabilities.
+      tokens: a list of character ids representing a transcription to align to
+              `scores`. Numbers are offsets into the rows of `scores`.
+
+    Returns:
+
+      best: An optimal alignment.
+    """
+
+    n_tokens, n_frames = scores.shape
+    n_token_chars = len(tokens)
+    bests = np.ones((n_token_chars, n_frames)) * -np.inf
+    for to_frame in range(n_frames):
+        for to_char in range(n_token_chars):
+            if to_char > to_frame or to_char < 0:
+                continue
+
+            # fmt: off
+            i_char = tokens[to_char]
+            if to_frame == 0:
+                best = scores[i_char, to_frame]
+            else:
+                best = max([
+                    bests[to_char, to_frame - 1] + scores[blank_id, to_frame],
+                    bests[to_char - 1, to_frame - 1] + scores[i_char, to_frame]
+                ])
+
+            # fmt: on
+            bests[to_char, to_frame] = best
+
+    # backtrack to reconstruct the path. this way we don't have to save
+    # anything in the forward pass.
+    path: typing.List[BestPath] = []
+    t = int(np.argmax(bests[:, -1]))
+    for f in range(n_frames - 1, -1, -1):
+        score = np.exp(bests[t, f])
+        frame_score = np.exp(scores[tokens[t], f])
+        path.insert(0, BestPath(t, f, score, frame_score))
+        if bests[t - 1, f - 1] > bests[t, f - 1]:
+            t -= 1
+
+    return path
 
 
-def merge_repeats(path, transcript):
-    i1, i2 = 0, 0
-    segments = []
-    while i1 < len(path):
-        while i2 < len(path) and path[i1].token_index == path[i2].token_index:
-            i2 += 1
-        score = sum(path[k].score for k in range(i1, i2)) / (i2 - i1)
-        segments.append(
-            Segment(
-                transcript[path[i1].token_index],
-                path[i1].time_index,
-                path[i2 - 1].time_index + 1,
-                score,
+def to_segments(
+    path: typing.List[BestPath], transcript: str
+) -> typing.List[Segment]:
+    """Convert the path into a list of collapsed segments. Merges path
+    elements with the same transcript index into a single `Segment`; e.g.
+    pieces where characters were padded with BLANK.
+    """
+
+    i_transcript = None
+    start, end = 0, 0
+    score = 0.0
+    segments: typing.List[Segment] = []
+
+    def emit():
+        if i_transcript is not None:
+            segments.append(
+                Segment(transcript[i_transcript], start, end, score)
             )
-        )
-        i1 = i2
+
+    for el in path:
+        if el.i_transcript == i_transcript:
+            # accumulate
+            score += el.score
+            end = el.i_frame
+        else:
+            # emit and start
+            emit()
+            i_transcript = el.i_transcript
+            start = el.i_frame
+            end = el.i_frame
+            score = el.score
+
+    # last
+    emit()
+
     return segments
 
 
-def merge_words(segments, separator="|") -> typing.List[Segment]:
-    words = []
-    i1, i2 = 0, 0
-    while i1 < len(segments):
-        if i2 >= len(segments) or segments[i2].label.endswith(separator):
-            if i1 != i2:
-                segs = segments[i1 : i2 + 1]
-                word = "".join([seg.label for seg in segs]).rstrip(separator)
-                score = sum(seg.score * seg.length for seg in segs) / sum(
-                    seg.length for seg in segs
-                )
-                words.append(
-                    Segment(
-                        word, segments[i1].start, segments[i2 - 1].end, score
-                    )
-                )
-            i1 = i2 + 1
-            i2 = i1
+def to_words(
+    segments: typing.List[Segment], separator="|"
+) -> typing.List[Segment]:
+    """Merge Segments on word boundaries. A single input segment can include
+    multiple characters, and may end with a separator.
+    """
+
+    word = ""
+    start, end = 0.0, 0.0
+    score = 0.0
+    words: typing.List[Segment] = []
+
+    def emit():
+        if word:
+            words.append(Segment(word, start, end, score))
+
+    for s in segments:
+        if s.label.endswith(separator):
+            # emit
+            if s.label != separator:
+                # start
+                word += s.label.rstrip(separator)
+                end = s.end
+                score += s.score
+
+            emit()
+            word = ""
         else:
-            i2 += 1
+            # accumulate
+            if not word:
+                start = s.start
+                score = 0.0
+
+            word += s.label
+            end = s.end
+            score += s.score
+
+    # last
+    emit()
+
     return words
 
 

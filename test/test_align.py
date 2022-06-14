@@ -1,4 +1,5 @@
 import helper
+import numpy as np
 import pytest
 import torch
 from hypothesis import given
@@ -12,6 +13,40 @@ def test_align():
     batch = torch.rand((2, 1, 20))
     logits = aligner.logp(batch)
     assert logits.equal(torch.log_softmax(batch.squeeze(1), dim=-1))
+
+
+def test_best():
+    scores = np.array([[0.1, 0.2], [0.8, 0.1], [0.1, 0.7]])
+    transcript = [1, 2]
+    best_result = align.best(np.log(scores), transcript, blank_id=0)
+    assert len(best_result) == 2
+
+    assert best_result[0].i_transcript == 0
+    assert best_result[0].i_frame == 0
+    assert abs(best_result[0].score - 0.8) < 10e-10
+
+    assert best_result[1].i_transcript == 1
+    assert best_result[1].i_frame == 1
+    assert abs(best_result[1].score - 0.56) < 10e-10
+
+
+def test_to_segments():
+    path = [
+        align.BestPath(0, 0, 0.1, 0.1),
+        align.BestPath(1, 1, 0.1, 0.1),
+        align.BestPath(1, 2, 0.1, 0.1),
+        align.BestPath(2, 3, 0.1, 0.1),
+    ]
+
+    transcript = "abcd"
+    got = align.to_segments(path, transcript)
+    want = [
+        align.Segment("a", 0, 0, 0.1),
+        align.Segment("b", 1, 2, 0.2),
+        align.Segment("c", 3, 3, 0.1),
+    ]
+
+    assert got == want
 
 
 def test_alignment_time_units():
@@ -129,7 +164,7 @@ def test_align_cleaned_text_commas():
 
 
 @pytest.mark.parametrize("separator", [" ", "|"])
-def test_merge_words(separator):
+def test_to_words(separator):
     segs = [
         helper.segment("Y", 0, 1),
         helper.segment("e", 2, 3),
@@ -140,15 +175,15 @@ def test_merge_words(separator):
     ]
 
     want = [
-        helper.segment("Yes", 0, 5),
-        helper.segment("no.", 8, 11),
+        helper.segment("Yes", 0, 5, score=3.0),
+        helper.segment("no.", 8, 11, score=2.0),
     ]
 
-    got = align.merge_words(segs, separator=separator)
+    got = align.to_words(segs, separator=separator)
     assert got == want
 
 
-def test_merge_words_collapsed_space():
+def test_to_words_collapsed_delimiter():
     segs = [
         helper.segment("Y", 0, 1),
         helper.segment("e", 2, 3),
@@ -159,11 +194,11 @@ def test_merge_words_collapsed_space():
     ]
 
     want = [
-        helper.segment("Yes,", 0, 5),
-        helper.segment("no.", 8, 11),
+        helper.segment("Yes,", 0, 7, score=4.0),
+        helper.segment("no.", 8, 11, score=2.0),
     ]
 
-    got = align.merge_words(segs, separator=" ")
+    got = align.to_words(segs, separator=" ")
     assert got == want
 
 

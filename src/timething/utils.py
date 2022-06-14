@@ -96,10 +96,9 @@ def read_alignment(alignments_dir: Path, alignment_id: str) -> align.Alignment:
 
     alignment = align.Alignment(
         alignment_dict["id"],
-        np.array([]),  # log probs
+        np.array([]),  # scores
         alignment_dict["recognised"],  # recognised string
-        np.array([]),  # trellis
-        np.array([]),  # backtracking path
+        [],  # path
         [],  # char segments
         [],  # original char segments
         [],  # word segments

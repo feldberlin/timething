@@ -42,7 +42,9 @@ def test_nums2words_year():
 
 
 def test_ctc_collapse():
-    got = text.ctc_collapse("a <b> a b b <b> c|d <b>".split(" "), blank="<b>")
+    recognised = "a <b> a b b <b> c|d <b>".replace("<b>", text.BLANK_TOKEN)
+    recognised = recognised.split(" ")
+    got = text.ctc_collapse(recognised)
     want = "aabc d"
     assert got == want
 
@@ -71,5 +73,5 @@ def test_decode_best(tokens=list("abcde"), n_frames=12):
     bests = np.random.randint(0, n_dict_terms, n_frames)
     logits = np.zeros((n_dict_terms, n_frames))
     logits[bests, np.arange(n_frames)] = 1.0
-    decoded = text.decode_best(torch.tensor(logits).T, dictionary)
+    decoded = text.decode_best(torch.tensor(logits), dictionary)
     assert decoded == [tokens[i] for i in bests]
