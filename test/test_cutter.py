@@ -8,8 +8,8 @@ def test_pause_durations():
     alignment = helper.alignment(
         n_model_frames=30,
         words=[
-            align.Segment("hello", 2, 8, 1.0),
-            align.Segment("world", 11, 20, 1.0),
+            align.Segment("hello", 2, 8, 1.0, 1.0),
+            align.Segment("world", 11, 20, 1.0, 1.0),
         ],
     )
 
@@ -21,8 +21,8 @@ def test_no_cut():
     alignment = helper.alignment(
         n_model_frames=30,
         words=[
-            align.Segment("hello", 2, 8, 1.0),
-            align.Segment("world", 11, 20, 1.0),
+            align.Segment("hello", 2, 8, 1.0, 1.0),
+            align.Segment("world", 11, 20, 1.0, 1.0),
         ],
     )
 
@@ -37,8 +37,8 @@ def test_one_cut():
     alignment = helper.alignment(
         n_model_frames=30,
         words=[
-            align.Segment("hello", 2, 8, 1.0),
-            align.Segment("world", 15, 30, 1.0),
+            align.Segment("hello", 2, 8, 1.0, 1.0),
+            align.Segment("world", 15, 30, 1.0, 1.0),
         ],
     )
 
@@ -62,12 +62,10 @@ def test_dataset_cut():
 
     # note that we can split up a single word, so the cutter just keeps things
     # as they are when applied to the fixtures dataset.
-    assert len(cuts) == 2
-    assert len(cuts[0].cuts) == 1
-    assert cuts[0].cuts[0].label == "One!"
-    assert len(cuts[1].cuts) == 2
-    assert cuts[1].cuts[0].label == "in"
-    assert cuts[1].cuts[1].label == "in"
+    assert len(cuts) == 1
+    assert len(cuts[0].cuts) == 2
+    assert cuts[0].cuts[0].label == "in"
+    assert cuts[0].cuts[1].label == "in"
 
 
 def test_dataset_recut():
@@ -87,25 +85,25 @@ def test_dataset_recut():
             padding_ms,
         )
 
-        # audio one exists
-        one_path = tmp / "audio" / "one-0.mp3"
-        one = torchaudio.info(one_path)
-        assert one.sample_rate == 44100
-        assert one.num_frames > 6000
-        assert one.num_channels == 2
-        assert one.encoding == "MP3"
+        # audio one does not exist
+        two_path = tmp / "audio" / "one-0.mp3"
+        assert not two_path.exists()
 
-        # audio two does not exists
+        # audio two does not exist
         two_path = tmp / "audio" / "two.mp3"
         assert not two_path.exists()
 
         # csv exists
         df = dataset.read_meta(to_meta).set_index("id")
-        assert len(df) == 3
+        assert len(df) == 2
 
-        # text one exists
-        one_text = df.loc["audio/one-0.mp3"].transcript
-        assert one_text == "One!"
+        # snip exists
+        one_path = tmp / "audio" / "born-0.mp3"
+        one = torchaudio.info(one_path)
+        assert one.sample_rate == 44100
+        assert one.num_frames > 6000
+        assert one.num_channels == 2
+        assert one.encoding == "MP3"
 
         # text born snip one exists
         born_text = df.loc["audio/born-0.mp3"].transcript

@@ -8,6 +8,13 @@ from num2words import num2words  # type: ignore
 # detect numbers
 NUMS_RE = re.compile(r"[-+]?(?:\d*\.\d+|\d+)")
 
+# CTC blank padding
+BLANK_TOKEN = "<pad>"
+
+# start of sentence
+SOS_TOKEN = "<s>"
+
+
 # cleaning
 
 
@@ -59,23 +66,23 @@ def nums2words(text: str, lang: str):
 # decoding
 
 
-def ctc_collapse(tokens: typing.List[str], blank="<pad>", delimiter="|"):
+def ctc_collapse(tokens: typing.List[str], delimiter="|"):
     "Collapse CTC blanks"
-    transcript = "".join(c for c, _ in itertools.groupby(tokens))
-    return " ".join(transcript.replace(blank, "").split(delimiter))
+    recognised = "".join(c for c, _ in itertools.groupby(tokens))
+    return " ".join(recognised.replace(BLANK_TOKEN, "").split(delimiter))
 
 
 def decode_best(logprobs, dictionary):
     "Argmax decoding of P(char | audio)."
-    x = torch.argmax(logprobs, dim=-1)
+    x = torch.argmax(logprobs, dim=0)
     return [dictionary[code.item()] for code in x.squeeze()]
 
 
-def best_ctc(logprobs, dictionary, blank="<pad>", delimiter="|"):
+def best_ctc(logprobs, dictionary, delimiter="|"):
     "Argmax decoding of P(char | audio). Inclues CTC collapsing"
 
     tokens = decode_best(logprobs, dictionary)
-    return ctc_collapse(tokens, blank, delimiter)
+    return ctc_collapse(tokens, delimiter)
 
 
 # partitioning

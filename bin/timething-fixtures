@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# Run timething on fixtures
+
+
+bin/timething-dev align \
+  --language english \
+  --metadata fixtures/text.csv \
+  --alignments-dir fixtures/alignments \
+  --batch-size 1 \
+  --n-workers 2 \
+  --k-shingles 3
