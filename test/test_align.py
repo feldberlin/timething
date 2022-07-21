@@ -1,4 +1,5 @@
 import helper
+import numpy as np
 import pytest
 import torch
 from hypothesis import given
@@ -12,6 +13,76 @@ def test_align():
     batch = torch.rand((2, 1, 20))
     logits = aligner.logp(batch)
     assert logits.equal(torch.log_softmax(batch.squeeze(1), dim=-1))
+
+
+def test_best():
+
+    # columns are distributions over vocab. rows are frames.
+    # first row is start of sentence, last row is blank.
+    scores = [
+        [1.0, 0.10, 0.1, 0.1],
+        [0.0, 0.80, 0.1, 0.2],
+        [0.0, 0.05, 0.7, 0.1],
+        [0.0, 0.05, 0.1, 0.6],
+    ]
+    scores = np.array(scores)
+
+    # as above
+    sos_id = 0
+    blank_id = 3
+
+    # higest probability char at each frame is: first, second and third rows.
+    # this happens to also be our transcript.
+    transcript = [sos_id, 1, 2]
+
+    # align to obtain best path
+    best_result = align.best(np.log(scores), transcript, blank_id=blank_id)
+
+    # we expect to have no path elements for start of sentence tokens.
+    assert len(best_result) == 3
+
+    # start of sentence has been stripped, so we begin in frame 1.
+    # first one should have 0.8 probability. frame 2, second row.
+    first = best_result[0]
+    assert first.i_transcript == 0
+    assert first.i_frame == 1
+    assert first.frame_score == 0.8
+    assert abs(first.path_score - 0.8) < 10e-10
+
+    # second one should have 0.7 probability. frame 3, third row. since path
+    # scores are products, we multiply this with the previous path leg 0.8 to
+    # obtain a score of 0.56.
+    second = best_result[1]
+    assert second.i_transcript == 1
+    assert second.i_frame == 2
+    assert second.frame_score == 0.7
+    assert abs(second.path_score - 0.56) < 10e-10
+
+    # repeat the last character with a blank token
+    third = best_result[2]
+    assert third.i_transcript == 1
+    assert third.i_frame == 3
+    assert third.frame_score == 0.6
+    assert abs(third.path_score - 0.336) < 10e-10
+
+
+def test_to_segments():
+    path = [
+        align.BestPath(0, 0, 0.1, 0.1),
+        align.BestPath(1, 1, 0.1, 0.1),
+        align.BestPath(1, 2, 0.1, 0.1),
+        align.BestPath(2, 3, 0.1, 0.1),
+    ]
+
+    transcript = "abcd"
+    got = align.to_segments(path, transcript)
+    want = [
+        align.Segment("a", 0, 0, 0.1, 0.1),
+        align.Segment("b", 1, 2, 0.01, 0.01),
+        align.Segment("c", 3, 3, 0.1, 0.1),
+    ]
+
+    assert helper.segment_lists_eq(got, want)
 
 
 def test_alignment_time_units():
@@ -57,7 +128,7 @@ def test_align_cleaned_text():
     ]
 
     got = align.align_clean_text(cleaned, original, cleaned_segments)
-    assert want == got
+    assert helper.segment_lists_eq(got, want)
 
 
 def test_align_cleaned_text_number():
@@ -74,7 +145,7 @@ def test_align_cleaned_text_number():
     ]
 
     got = align.align_clean_text(cleaned, original, cleaned_segments)
-    assert want == got
+    assert helper.segment_lists_eq(got, want)
 
 
 def test_align_cleaned_text_leading_addition():
@@ -82,7 +153,7 @@ def test_align_cleaned_text_leading_addition():
     cleaned_segments = [helper.segment("a", 0, 1)]
     got = align.align_clean_text(cleaned, original, cleaned_segments)
     want = [helper.segment("!A", 0, 1)]
-    assert want == got
+    assert helper.segment_lists_eq(got, want)
 
 
 def test_align_cleaned_text_normalisation():
@@ -101,7 +172,7 @@ def test_align_cleaned_text_normalisation():
     ]
 
     got = align.align_clean_text(cleaned, original, cleaned_segments)
-    assert want == got
+    assert helper.segment_lists_eq(got, want)
 
 
 def test_align_cleaned_text_commas():
@@ -125,11 +196,11 @@ def test_align_cleaned_text_commas():
     ]
 
     got = align.align_clean_text(cleaned, original, cleaned_segments)
-    assert want == got
+    assert helper.segment_lists_eq(got, want)
 
 
 @pytest.mark.parametrize("separator", [" ", "|"])
-def test_merge_words(separator):
+def test_to_words(separator):
     segs = [
         helper.segment("Y", 0, 1),
         helper.segment("e", 2, 3),
@@ -144,11 +215,11 @@ def test_merge_words(separator):
         helper.segment("no.", 8, 11),
     ]
 
-    got = align.merge_words(segs, separator=separator)
-    assert got == want
+    got = align.to_words(segs, separator=separator)
+    assert helper.segment_lists_eq(got, want)
 
 
-def test_merge_words_collapsed_space():
+def test_to_words_collapsed_delimiter():
     segs = [
         helper.segment("Y", 0, 1),
         helper.segment("e", 2, 3),
@@ -159,12 +230,12 @@ def test_merge_words_collapsed_space():
     ]
 
     want = [
-        helper.segment("Yes,", 0, 5),
+        helper.segment("Yes,", 0, 7),
         helper.segment("no.", 8, 11),
     ]
 
-    got = align.merge_words(segs, separator=" ")
-    assert got == want
+    got = align.to_words(segs, separator=" ")
+    assert helper.segment_lists_eq(got, want)
 
 
 @given(out_text=st.text())
