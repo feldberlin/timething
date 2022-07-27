@@ -8,6 +8,7 @@ import dataclasses
 import typing
 from dataclasses import dataclass
 from difflib import ndiff
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -33,6 +34,12 @@ class Config:
 
     # k-shingles for partition score
     k_shingles: int
+
+    # cache dir for models
+    cache_dir: Path = Path("~/.cache/huggingface/transformers").expanduser()
+
+    # currently needed for hf to work offline
+    local_files_only: bool = False
 
 
 @dataclass
@@ -150,10 +157,16 @@ class Aligner:
         return Aligner(
             device,
             Wav2Vec2Processor.from_pretrained(
-                cfg.hugging_model, revision=cfg.hugging_pin
+                cfg.hugging_model,
+                revision=cfg.hugging_pin,
+                cache_dir=cfg.cache_dir,
+                local_files_only=cfg.local_files_only,
             ),
             Wav2Vec2ForCTC.from_pretrained(
-                cfg.hugging_model, revision=cfg.hugging_pin
+                cfg.hugging_model,
+                revision=cfg.hugging_pin,
+                cache_dir=cfg.cache_dir,
+                local_files_only=cfg.local_files_only,
             ).to(device),
             cfg.sampling_rate,
             cfg.k_shingles,

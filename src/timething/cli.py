@@ -58,6 +58,13 @@ def cli():
     show_default=True,
     help="Number of shingles to use for the partition score",
 )
+@click.option(
+    "--offline",
+    type=bool,
+    default=False,
+    show_default=True,
+    help="Offline mode",
+)
 def align(
     language: str,
     metadata: str,
@@ -66,6 +73,7 @@ def align(
     n_workers: int,
     use_gpu: bool,
     k_shingles: int,
+    offline: bool,
 ):
     """Align text transcripts with audio.
 
@@ -76,7 +84,7 @@ def align(
     """
 
     # retrieve the config for the given language
-    cfg = utils.load_config(language, k_shingles)
+    cfg = utils.load_config(language, k_shingles, local_files_only=offline)
 
     # construct the dataset
     ds = dataset.SpeechDataset(Path(metadata), cfg.sampling_rate)

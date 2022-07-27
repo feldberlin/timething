@@ -13,7 +13,9 @@ from timething import align  # type: ignore
 MODELS_YAML = "models.yaml"
 
 
-def load_config(model: str, k_shingles=5) -> align.Config:
+def load_config(
+    model: str, k_shingles=5, local_files_only=False
+) -> align.Config:
     """
     Load config object for the given model key
     """
@@ -26,6 +28,7 @@ def load_config(model: str, k_shingles=5) -> align.Config:
         cfg[model]["sampling_rate"],
         cfg[model]["language"],
         k_shingles,
+        local_files_only=local_files_only,
     )
 
 
