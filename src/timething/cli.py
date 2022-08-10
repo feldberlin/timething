@@ -2,6 +2,7 @@ from pathlib import Path
 
 import click
 
+from timething import align as timething_align
 from timething import cutter, dataset, job, text, utils  # type: ignore
 
 
@@ -94,10 +95,10 @@ def align(
     j = job.Job(
         cfg,
         ds,
-        Path(alignments_dir),
         batch_size=batch_size,
         n_workers=n_workers,
         gpu=use_gpu,
+        output_path=Path(alignments_dir),
     )
 
     # construct the generic model text cleaner
@@ -169,6 +170,28 @@ def recut(
         pause_threshold_model_frames,
         padding_ms,
     )
+
+
+@cli.command()
+@click.option(
+    "--language",
+    default="english",
+    show_default=True,
+    help="Key in timething/models.yaml.",
+)
+def download(language: str):
+    """Downloads a speech recognition model and puts it in the cache dir.
+
+    Timething will download the language model you need on demand. In some
+    cases, you may want to cache the model before though.
+    """
+
+    # retrieve the config for the given language
+    cfg = utils.load_config(language)
+
+    # download
+    click.echo("dowloading speech recognition model...")
+    timething_align.Aligner.build("cpu", cfg)
 
 
 if __name__ == "__main__":
