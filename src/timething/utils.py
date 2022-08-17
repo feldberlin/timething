@@ -62,9 +62,8 @@ def load_audio(content: bytes, format: str):
     return audio, sr
 
 
-def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
-    """
-    Write a custom json alignments file for a given aligned recording.
+def alignment_meta(alignment: align.Alignment):
+    """Alignment data as a dictionary
     """
 
     def rescale(n_model_frames: float) -> float:
@@ -82,7 +81,7 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
         ]
 
     # combine the metadata
-    meta = {
+    return {
         "id": alignment.id,
         "n_model_frames": alignment.n_model_frames,
         "n_audio_samples": alignment.n_audio_samples,
@@ -94,6 +93,15 @@ def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
         "words": alignments(alignment.words),
         "words_cleaned": alignments(alignment.words_cleaned),
     }
+
+
+def write_alignment(output_path: Path, id: str, alignment: align.Alignment):
+    """
+    Write a custom json alignments file for a given aligned recording.
+    """
+
+    # grab the metadata
+    meta = alignment_meta(alignment)
 
     # write any path components, e.g. for id 'audio/one.mp3.json'
     filename = alignment_filename(output_path, id)

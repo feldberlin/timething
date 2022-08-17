@@ -36,7 +36,7 @@ class Config:
     k_shingles: int
 
     # cache dir for models
-    cache_dir: Path = Path("~/.cache/huggingface/transformers").expanduser()
+    cache_dir: Path = Path("~/.cache/timething").expanduser()
 
     # currently needed for hf to work offline
     local_files_only: bool = False

@@ -23,7 +23,7 @@ def test_inference_dataset():
     # compare shapes to speech dataset
     meta = helper.fixtures / "text.csv"
     alignments_path = helper.fixtures / "alignments"
-    speech_ds = dataset.SpeechDataset(meta, 16000, alignments_path)
+    speech_ds = dataset.SpeechDataset(meta, None, alignments_path)
 
     assert speech_ds[0].audio.shape == inference_ds[0].audio.shape
 
