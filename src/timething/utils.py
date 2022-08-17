@@ -1,6 +1,8 @@
 import importlib.resources as pkg_resources
 import json
+import os
 from pathlib import Path
+from tempfile import mkstemp
 
 import numpy as np
 import torchaudio  # type: ignore
@@ -45,6 +47,19 @@ def load_slice(filename: Path, start_seconds: float, end_seconds: float):
     end = int(end_seconds / seconds_per_frame)
     duration = end - start
     return torchaudio.load(filename, start, duration)
+
+
+def load_audio(content: bytes, format: str):
+    "Like torchaudio.load, but from a binary blob"
+
+    fd, path = mkstemp(suffix=f".{format}")
+    with os.fdopen(fd, "wb") as f:
+        f.write(content)
+        f.flush()
+
+    audio, sr = torchaudio.load(path, format=format)
+    os.unlink(path)
+    return audio, sr
 
 
 def write_alignment(output_path: Path, id: str, alignment: align.Alignment):

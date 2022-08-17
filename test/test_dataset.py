@@ -1,6 +1,25 @@
+import base64
+
 import helper
 
-from timething import dataset
+from timething import dataset, utils
+
+
+def test_inference_dataset():
+    cfg = utils.load_config("german")
+    with (helper.fixtures / "audio" / "one.mp3").open("rb") as f:
+        data = f.read()
+        recording = base64.b64encode(data)
+
+    records = [dataset.Base64Record(transcript="one", recording=recording)]
+    ds = dataset.InferenceDataset(
+        records, format="mp3", sample_rate=cfg.sampling_rate
+    )
+
+    assert len(ds) == 1
+    assert len(ds[0].audio) > 0
+    assert ds[0].transcript == "one"
+    assert ds[0].audio.shape == (2, 64474)
 
 
 def test_dataset_with_alignments():

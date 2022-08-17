@@ -1,3 +1,4 @@
+import base64
 import typing
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,9 +14,7 @@ from timething import align, utils
 
 @dataclass
 class CSVRecord:
-    """
-    A line in the dataset metadata csv
-    """
+    "A line in the dataset metadata csv"
 
     # id in the dataset
     id: str
@@ -25,6 +24,21 @@ class CSVRecord:
 
     # corresponding transcript
     transcript: str
+
+
+@dataclass
+class Base64Record:
+    "Recording and transcript in raw b64 input form. Used for inference"
+
+    # the transcription
+    transcript: str
+
+    # base64 encoded audio bytes. Not decoded
+    recording: str
+
+    @property
+    def audio(self):
+        return base64.b64decode(self.recording)
 
 
 @dataclass
@@ -121,6 +135,43 @@ class SpeechDataset(Dataset):
     def resample(self, sample_rate) -> bool:
         "should examples be resampled or not"
         return self.resample_to is not None and sample_rate != self.resample_to
+
+
+class InferenceDataset(Dataset):
+    "A single batch of records to perform alignment on."
+
+    def __init__(
+        self,
+        records: typing.List[Base64Record],
+        format: str,
+        sample_rate=44100,
+        clean_text_fn=None,
+    ):
+        self.records = records
+        self.format = format
+        self.sample_rate = sample_rate
+        self.clean_text_fn = clean_text_fn
+
+    def __len__(self):
+        return len(self.records)
+
+    def __getitem__(self, idx):
+        assert idx >= 0
+        assert idx <= len(self)
+        record = self.records[idx]
+        audio, sample_rate = utils.load_audio(record.audio, self.format)
+        cleaned_transcript = record.transcript
+        if self.clean_text_fn:
+            cleaned_transcript = self.clean_text_fn(record.transcript)
+
+        return Recording(
+            str(idx),
+            audio,
+            cleaned_transcript,
+            record.transcript,
+            None,
+            sample_rate,
+        )
 
 
 def csv(metadata: Path) -> typing.List[CSVRecord]:

@@ -1,4 +1,5 @@
 import helper
+import torchaudio
 
 from timething import align, utils  # type: ignore
 
@@ -30,3 +31,11 @@ def test_read_write_alignment_roundtrip():
         assert got.n_model_frames == want.n_model_frames
         assert got.n_audio_samples == want.n_audio_samples
         assert got.sampling_rate == want.sampling_rate
+
+
+def test_load_audio():
+    one_path = helper.fixtures / "audio" / "one.mp3"
+    with one_path.open("rb") as f:
+        loaded_audio, _ = utils.load_audio(f.read(), format="mp3")
+    audio, _ = torchaudio.load(one_path)
+    assert loaded_audio.equal(audio)

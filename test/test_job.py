@@ -14,7 +14,9 @@ def test_job():
         ds = dataset.SpeechDataset(metadata, cfg.sampling_rate)
 
         print("setting up alignment job...")
-        j = job.Job(cfg, ds, tmp, batch_size=1, n_workers=1, gpu=False)
+        j = job.Job(
+            cfg, ds, batch_size=1, n_workers=1, gpu=False, output_path=tmp
+        )
 
         # construct the generic model text cleaner
         ds.clean_text_fn = text.TextCleaner(cfg.language, j.aligner.vocab)
