@@ -159,7 +159,12 @@ class InferenceDataset(Dataset):
         assert idx >= 0
         assert idx <= len(self)
         record = self.records[idx]
+
+        # audio
         audio, sample_rate = utils.load_audio(record.audio, self.format)
+        audio = torch.mean(audio, 0, keepdim=True)
+
+        # transcript
         cleaned_transcript = record.transcript
         if self.clean_text_fn:
             cleaned_transcript = self.clean_text_fn(record.transcript)
