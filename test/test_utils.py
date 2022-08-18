@@ -4,6 +4,12 @@ import torchaudio
 from timething import align, utils  # type: ignore
 
 
+def test_load_config():
+    cfg = utils.load_config("german")
+    assert cfg.language == "de"
+    assert cfg.local_files_only is False
+
+
 def test_read_write_alignment_roundtrip():
     with helper.tempdir() as tmp:
         alignment = helper.alignment(

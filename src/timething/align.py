@@ -159,13 +159,13 @@ class Aligner:
             Wav2Vec2Processor.from_pretrained(
                 cfg.hugging_model,
                 revision=cfg.hugging_pin,
-                cache_dir=cfg.cache_dir,
+                cache_dir=str(cfg.cache_dir),
                 local_files_only=cfg.local_files_only,
             ),
             Wav2Vec2ForCTC.from_pretrained(
                 cfg.hugging_model,
                 revision=cfg.hugging_pin,
-                cache_dir=cfg.cache_dir,
+                cache_dir=str(cfg.cache_dir),
                 local_files_only=cfg.local_files_only,
             ).to(device),
             cfg.sampling_rate,

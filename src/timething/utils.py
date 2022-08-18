@@ -25,11 +25,11 @@ def load_config(
     text = pkg_resources.read_text(timething, MODELS_YAML)
     cfg = yaml.safe_load(text)
     return align.Config(
-        cfg[model]["model"],
-        cfg[model]["pin"],
-        cfg[model]["sampling_rate"],
-        cfg[model]["language"],
-        k_shingles,
+        hugging_model=cfg[model]["model"],
+        hugging_pin=cfg[model]["pin"],
+        sampling_rate=cfg[model]["sampling_rate"],
+        language=cfg[model]["language"],
+        k_shingles=k_shingles,
         local_files_only=local_files_only,
     )
 
