@@ -16,7 +16,7 @@ MODELS_YAML = "models.yaml"
 
 
 def load_config(
-    model: str, k_shingles=5, local_files_only=False
+    model: str, k_shingles=5, local_files_only=False, cache_dir=None
 ) -> align.Config:
     """
     Load config object for the given model key
@@ -31,6 +31,7 @@ def load_config(
         language=cfg[model]["language"],
         k_shingles=k_shingles,
         local_files_only=local_files_only,
+        cache_dir=cache_dir if cache_dir else align.CACHE_DIR_DEFAULT,
     )
 
 

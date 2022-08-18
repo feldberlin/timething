@@ -16,6 +16,9 @@ from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor  # type: ignore
 
 from timething import text
 
+# default cache dir path
+CACHE_DIR_DEFAULT = Path("~/.cache/timething").expanduser()
+
 
 @dataclass
 class Config:
@@ -36,7 +39,7 @@ class Config:
     k_shingles: int
 
     # cache dir for models
-    cache_dir: Path = Path("~/.cache/timething").expanduser()
+    cache_dir: Path = CACHE_DIR_DEFAULT
 
     # currently needed for hf to work offline
     local_files_only: bool = False
