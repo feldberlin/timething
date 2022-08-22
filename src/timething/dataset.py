@@ -162,6 +162,13 @@ class InferenceDataset(Dataset):
 
         # audio
         audio, sample_rate = utils.load_audio(record.audio, self.format)
+
+        # resample, if needed
+        if self.sample_rate != sample_rate:
+            tf = torchaudio.transforms.Resample(sample_rate, self.sample_rate)
+            audio = tf(audio)
+
+        # mono
         audio = torch.mean(audio, 0, keepdim=True)
 
         # transcript

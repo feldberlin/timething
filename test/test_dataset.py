@@ -18,12 +18,12 @@ def test_inference_dataset():
     assert len(inference_ds) == 1
     assert len(inference_ds[0].audio) > 0
     assert inference_ds[0].transcript == "one"
-    assert inference_ds[0].audio.shape == (1, 64474)  # must be mono
+    assert inference_ds[0].audio.shape == (1, 23392)
 
     # compare shapes to speech dataset
     meta = helper.fixtures / "text.csv"
     alignments_path = helper.fixtures / "alignments"
-    speech_ds = dataset.SpeechDataset(meta, None, alignments_path)
+    speech_ds = dataset.SpeechDataset(meta, 16000, alignments_path)
 
     assert speech_ds[0].audio.shape == inference_ds[0].audio.shape
 
