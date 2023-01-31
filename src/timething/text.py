@@ -19,8 +19,7 @@ SOS_TOKEN = "<s>"
 
 
 class TextCleaner:
-    """A generic text cleaner. Langauge is an ISO 639-1 code
-    """
+    """A generic text cleaner. Langauge is an ISO 639-1 code"""
 
     def __init__(self, language: str, vocab: typing.List[str]):
         self.language = language

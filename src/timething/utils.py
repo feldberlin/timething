@@ -64,8 +64,7 @@ def load_audio(content: bytes, format: str):
 
 
 def alignment_meta(alignment: align.Alignment):
-    """Alignment data as a dictionary
-    """
+    """Alignment data as a dictionary"""
 
     def rescale(n_model_frames: float) -> float:
         return alignment.model_frames_to_seconds(n_model_frames)

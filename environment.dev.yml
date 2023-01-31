@@ -4,6 +4,7 @@ dependencies:
   - black
   - flake8
   - hypothesis
+  - hypothesis[numpy]
   - ipykernel
   - ipython
   - isort

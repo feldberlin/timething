@@ -164,8 +164,7 @@ class Alignment:
 
 
 class Aligner:
-    """Align the given transcription to the given audio file.
-    """
+    """Align the given transcription to the given audio file."""
 
     def __init__(self, device, processor, model, sr=16000, k_shingles=5):
         self.device = device
@@ -410,6 +409,24 @@ def best(
     ]
 
     return path
+
+
+def best_brute_force(
+    scores: np.ndarray, tokens: typing.List[int], blank_id: int
+) -> typing.Set[typing.List[BestPath]]:
+    """A brute force version of best. Enumerates all possible paths.
+
+    Returns:
+        a set of the optimal paths.
+    """
+
+    n_vocab, n_frames = scores.shape
+    n_token_chars = len(tokens)
+
+    for frame in range(n_frames):
+        pass
+
+    return []
 
 
 def to_segments(

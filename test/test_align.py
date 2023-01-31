@@ -15,6 +15,60 @@ def test_align():
     assert logits.equal(torch.log_softmax(batch.squeeze(1), dim=-1))
 
 
+@given(
+    n_vocab=st.integers(3, 15),  # sos, blank, one char min
+    n_frames=st.integers(1, 15),
+    n_token_chars=st.integers(1, 15),
+)
+def test_align_optimality(n_vocab, n_frames, n_token_chars):
+    """Fuzz dynamic aligment against brute force solutions.
+
+    The problem is defined by scores and a matching transcript tokens.
+
+    Dynamic best alignment should find optiomal solutions to the problem.
+    There may be more than one optimal solution. We can find optimal solutions
+    by enumerating all possible solutions as long as the problem is small
+    enough. We expect to find the dynamic programming solution in the set of
+    optimal solutions found by brute force search.
+
+    Problem inputs:
+
+      scores: a `n_vocab` x `n_frames` table where each element represents the
+              score of a given token at a given frame. Scores should be
+              normalized to become log probabilities. `n_vocab` is the number
+              of characters in the alphabet we are using.
+      tokens: a list of character ids representing a transcription to align to
+              `scores`. Numbers are offsets into the rows of `scores`. Tokens
+              has a length of n_token_chars.
+    """
+
+    # where in the vocab are start of sentence and blank
+    sos_id = 0
+    blank_id = 1
+
+    # construct scores
+    scores = np.random.rand(n_vocab, n_frames)
+    scores /= scores.sum(axis=0)  # probabilities sum to 1.0
+    scores = np.log(scores)  # we need log probabilities
+
+    # construct transcript
+    n_vocab_chars = n_vocab - 1  # do not include sos
+    transcript = np.random.randint(1, n_vocab_chars, size=n_token_chars)
+    transcript = np.insert(transcript, 0, sos_id)
+
+    # best align
+    best = align.best(scores, transcript, blank_id=blank_id)
+    print(best)
+
+    # brute force align
+    best_brute_force = align.best_brute_force(
+        scores, transcript, blank_id=blank_id
+    )
+    print(best_brute_force)
+
+    assert False
+
+
 def test_best():
 
     # columns are distributions over vocab. rows are frames.

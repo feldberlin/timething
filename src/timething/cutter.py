@@ -160,7 +160,9 @@ def dataset_recut(
             start = max(snip.start - padding_ms / 1000, 0)
             end = snip.end + padding_ms / 1000
             ys, sr = utils.load_slice(
-                from_metadata.parent / cut.id, start, end,
+                from_metadata.parent / cut.id,
+                start,
+                end,
             )
 
             # wrangle ids
