@@ -9,7 +9,6 @@ def test_job():
     cfg = utils.load_config("english")
     metadata = helper.fixtures / "text.csv"
     with helper.tempdir() as tmp:
-
         # set up dataset
         ds = dataset.SpeechDataset(metadata, cfg.sampling_rate)
 

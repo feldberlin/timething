@@ -72,7 +72,9 @@ class Recording:
 
 class SpeechDataset(Dataset):
     """
-    Process a folder of audio files and transcriptions
+    Process a folder of audio files and transcriptions. Each file should be
+    pre-cut into utterances, such that each utterance can be processed in a
+    single batch.
     """
 
     def __init__(
@@ -189,7 +191,7 @@ class InferenceDataset(Dataset):
 def csv(metadata: Path) -> typing.List[CSVRecord]:
     "read in the dataset csv"
     records = []
-    for (_, row) in read_meta(metadata).iterrows():
+    for _, row in read_meta(metadata).iterrows():
         file_path = metadata.parent / row.id
         records.append(CSVRecord(row.id, file_path, row.transcript))
 

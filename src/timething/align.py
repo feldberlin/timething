@@ -22,7 +22,6 @@ CACHE_DIR_DEFAULT = Path("~/.cache/timething").expanduser()
 
 @dataclass
 class Config:
-
     # the id of the hugging face model
     hugging_model: str
 
@@ -87,7 +86,6 @@ class Point:
 
 @dataclass
 class Alignment:
-
     # example identifier
     id: str
 
@@ -291,7 +289,6 @@ def backtrack(trellis, emission, tokens, blank_id=0):
 
     path = []
     for t in range(t_start, 0, -1):
-
         # 1. Figure out if the current position was stay or change
         # `emission[J-1]` is the emission at time frame `J` of trellis dim.
         # Score for token staying the same from time frame J-1 to T.

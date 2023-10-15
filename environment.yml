@@ -12,6 +12,6 @@ dependencies:
   - num2words
   - numpy
   - pytorch
-  - tokenizers=0.10.1
+  - tokenizers
   - torchaudio
-  - transformers=4.4.2
+  - transformers=4.6.0

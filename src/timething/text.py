@@ -12,8 +12,7 @@ NUMS_RE = re.compile(r"[-+]?(?:\d*\.\d+|\d+)")
 
 
 class TextCleaner:
-    """A generic text cleaner. Langauge is an ISO 639-1 code
-    """
+    """A generic text cleaner. Langauge is an ISO 639-1 code"""
 
     def __init__(self, language: str, vocab: typing.List[str]):
         self.language = language
@@ -21,7 +20,6 @@ class TextCleaner:
         self.blacklist = re.compile(f"[^{re.escape(self.allowed_chars)}]+")
 
     def __call__(self, text: str):
-
         # assumes a lower case only text model.
         text = text.casefold()
 
