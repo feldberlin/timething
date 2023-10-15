@@ -58,7 +58,7 @@ def pause_cuts(
 
     # construct the larger cut segments
     cuts = []
-    for (i, j) in bounds:
+    for i, j in bounds:
         label = " ".join([w.label for w in word_segments[i : j + 1]])
         segment = align.Segment(
             label, word_segments[i].start, word_segments[j].end, 1.0
@@ -159,7 +159,9 @@ def dataset_recut(
             start = max(snip.start - padding_ms / 1000, 0)
             end = snip.end + padding_ms / 1000
             ys, sr = utils.load_slice(
-                from_metadata.parent / cut.id, start, end,
+                from_metadata.parent / cut.id,
+                start,
+                end,
             )
 
             # wrangle ids

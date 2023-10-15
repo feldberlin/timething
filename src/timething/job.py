@@ -9,8 +9,7 @@ from timething import align, dataset, utils  # type: ignore
 
 
 class Job:
-    """An alignment job.
-    """
+    """An alignment job."""
 
     def __init__(
         self,

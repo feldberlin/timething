@@ -15,7 +15,6 @@ def test_align():
 
 
 def test_alignment_time_units():
-
     # 2 seconds of 16k audio at 10 frames per second
     alignment = helper.alignment(
         n_model_frames=200, n_audio_samples=32000, sampling_rate=16000

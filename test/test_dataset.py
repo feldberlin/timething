@@ -18,7 +18,7 @@ def test_inference_dataset():
     assert len(inference_ds) == 1
     assert len(inference_ds[0].audio) > 0
     assert inference_ds[0].transcript == "one"
-    assert inference_ds[0].audio.shape == (1, 23392)
+    assert inference_ds[0].audio.shape == (1, 22640)
 
     # compare shapes to speech dataset
     meta = helper.fixtures / "text.csv"

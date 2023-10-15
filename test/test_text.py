@@ -18,7 +18,6 @@ def test_cleaner():
 
 
 def test_nums2words():
-
     # convert floats to words
     got = text.nums2words("11.2 oder 10.1", lang="de")
     want = "elf Komma zwei oder zehn Komma eins"

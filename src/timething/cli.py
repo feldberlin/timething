@@ -3,7 +3,7 @@ from pathlib import Path
 import click
 
 from timething import align as timething_align
-from timething import cutter, dataset, job, text, utils  # type: ignore
+from timething import cutter, dataset, job, text, utils, llm  # type: ignore
 
 
 @click.group()
@@ -192,6 +192,40 @@ def download(language: str):
     # download
     click.echo("dowloading speech recognition model...")
     timething_align.Aligner.build("cpu", cfg)
+
+
+@cli.command()
+@click.option(
+    "--transcript-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="Full path to the transcript file.",
+)
+@click.option(
+    "--output-file",
+    required=True,
+    type=click.Path(exists=False),
+    help="Full path to the output file.",
+)
+@click.option("--openai-api-key", required=True, help="OpenAI API key.")
+def clean_transcript(
+    transcript_file: str, output_file: str, openai_api_key: str
+):
+    """Cleans a transcript file.
+
+    Currently passes through chat-gpt.
+    """
+
+    click.echo("cleaning transcript file {}...".format(transcript_file))
+
+    chatter = llm.ChatGPT(openai_api_key)
+    with open(Path(transcript_file), "r") as f:
+        cleaned = text.clean_with_llm(chatter, f.read())
+
+    with open(Path(output_file), "w") as f:
+        f.write(cleaned)
+
+    click.echo("wrote cleaned transcript to {}".format(output_file))
 
 
 if __name__ == "__main__":

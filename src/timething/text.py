@@ -12,8 +12,7 @@ NUMS_RE = re.compile(r"[-+]?(?:\d*\.\d+|\d+)")
 
 
 class TextCleaner:
-    """A generic text cleaner. Langauge is an ISO 639-1 code
-    """
+    """A generic text cleaner. Langauge is an ISO 639-1 code"""
 
     def __init__(self, language: str, vocab: typing.List[str]):
         self.language = language
@@ -21,7 +20,6 @@ class TextCleaner:
         self.blacklist = re.compile(f"[^{re.escape(self.allowed_chars)}]+")
 
     def __call__(self, text: str):
-
         # assumes a lower case only text model.
         text = text.casefold()
 
@@ -54,6 +52,20 @@ def nums2words(text: str, lang: str):
         return num2words(number, lang=lang, to=to)
 
     return re.sub(NUMS_RE, fn, text)
+
+
+def clean_with_llm(chatter, text, max_length=500):
+    """Clean text using a large language model. This is a slow operation."""
+
+    cleaned_sections = []
+    sections = split(text, max_length)
+    for section in sections:
+        print(f"-> CLEANING\n\n {section}")
+        cleaned = chatter.complete(section)
+        print(f"-> CLEANED\n\n {cleaned}")
+        cleaned_sections.append(cleaned)
+
+    return " ".join(cleaned_sections)
 
 
 # decoding
@@ -98,3 +110,34 @@ def jaquard(a: set, b: set) -> float:
 def similarity(query: str, candidate: str, k: int) -> float:
     "Similarity of two strings. Returns a score >= 0 <= 1."
     return jaquard(k_shingle(query, k), k_shingle(candidate, k))
+
+
+def split_into_sentences(text):
+    "Very simple sentence splitter"
+    sentences = re.split(r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s", text)
+    return sentences
+
+
+def split(text, max_length):
+    "Split text into chunks of max_length."
+    sentences = split_into_sentences(text)
+    chunks, chunk, current_length = [], "", 0
+
+    for sentence in sentences:
+        sentence_length = len(sentence)
+        if current_length + sentence_length <= max_length:
+            chunk += sentence + " "
+            # Adds 1 for the space added after the sentence
+            current_length += sentence_length + 1
+        else:
+            # Avois adding empty strings in case a sentence itself is longer
+            # than max_length
+            if chunk:
+                chunks.append(chunk.strip())
+            chunk = sentence + " "
+            current_length = sentence_length + 1
+
+    if chunk:  # Add the last chunk
+        chunks.append(chunk.strip())
+
+    return chunks
