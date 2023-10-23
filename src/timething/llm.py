@@ -1,8 +1,4 @@
-import os
-
 import openai
-
-from timething import text
 
 
 podcast_prompt = """

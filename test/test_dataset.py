@@ -40,3 +40,13 @@ def test_dataset_with_alignments():
     got = [s.label for s in ds[2].alignment.words_cleaned]
     want = ["born", "in", "nineteen", "sixty-nine", "in", "belgrade"]
     assert got == want
+
+
+def test_windowed_track():
+    w = dataset.WindowedTrack(
+        helper.fixtures / "audio" / "keanu.mp3", "mp3", 1000, 500
+    )
+
+    assert len(w) == 3143
+    assert w.sample_rate == 48000
+    assert w[0].shape == (1, 48000)

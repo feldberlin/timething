@@ -1,7 +1,6 @@
 import typing
 from pathlib import Path
 
-import torch
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm  # type: ignore
 
@@ -21,7 +20,7 @@ class Job:
         output_path: typing.Optional[Path],
     ):
         self.cfg = cfg
-        self.device = "cuda" if torch.cuda.is_available() and gpu else "cpu"
+        self.device = utils.best_device()
         self.output_path = output_path
         self.aligner = align.Aligner.build(self.device, cfg)
         self.loader = DataLoader(
@@ -29,6 +28,7 @@ class Job:
             batch_size=batch_size,
             num_workers=n_workers,
             collate_fn=dataset.collate_fn,
+            pin_memory=self.device != "cpu",
             shuffle=False,
         )
 

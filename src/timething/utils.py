@@ -5,6 +5,7 @@ from pathlib import Path
 from tempfile import mkstemp
 
 import numpy as np
+import torch
 import torchaudio  # type: ignore
 import yaml  # type: ignore
 
@@ -169,3 +170,21 @@ def alignment_filename(path, id):
 
     filename = path / id
     return filename.parent / (filename.name + ".json")
+
+
+# Gpu
+
+
+def best_device():
+    if gpu_cuda_available():
+        return torch.device("cuda")
+    else:
+        return torch.device("cpu")
+
+
+def gpu_mps_available():
+    return torch.backends.mps.is_available() and torch.backends.mps.is_built()
+
+
+def gpu_cuda_available():
+    return torch.cuda.is_available() and torch.cuda.is_built()
