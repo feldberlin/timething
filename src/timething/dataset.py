@@ -188,6 +188,71 @@ class InferenceDataset(Dataset):
         )
 
 
+class WindowedTrackDataset(Dataset):
+    """Index an audio track into a series of overlapping windows."""
+
+    def __init__(
+        self,
+        filename: Path,
+        format: str,
+        transcript: str,
+        window_size_ms: int,
+        hop_size_ms: int,
+        resample_to: typing.Optional[int] = None,
+    ):
+        self.filename = filename
+        self.format = format
+        self.transcript = transcript
+        self.cleaned_transcript = self.transcript
+        self.window_size_ms = window_size_ms
+        self.hop_size_ms = hop_size_ms
+        self.resample_to = resample_to
+        self.audio, self.sample_rate = torchaudio.load(filename, format=format)
+
+        # resample, if needed
+        if self.resample(self.sample_rate):
+            tf = torchaudio.transforms.Resample(
+                self.sample_rate, self.resample_to
+            )
+            self.audio = tf(self.audio)
+            self.sample_rate = self.resample_to
+
+        # squash to or retain mono
+        self.audio = torch.mean(self.audio, 0, keepdim=True)
+
+    def set_cleaner(self, clean_text_fn):
+        self.clean_text_fn = clean_text_fn
+        self.cleaned_transcript = clean_text_fn(self.transcript)
+
+    def __getitem__(self, idx):
+        assert idx >= 0
+        assert idx <= len(self)
+        start = idx * self.hop_size_samples()
+        end = start + self.window_size_samples()
+
+        return Recording(
+            self.filename,
+            self.audio[:, start:end],
+            self.cleaned_transcript,
+            self.transcript,
+            None,
+            self.sample_rate,
+        )
+
+    def __len__(self):
+        total = self.audio.shape[-1] - self.window_size_samples()
+        return int(total / self.hop_size_samples())
+
+    def window_size_samples(self):
+        return int(self.window_size_ms * self.sample_rate / 1000)
+
+    def hop_size_samples(self):
+        return int(self.hop_size_ms * self.sample_rate / 1000)
+
+    def resample(self, sample_rate) -> bool:
+        return self.resample_to is not None and sample_rate != self.resample_to
+
+
 def csv(metadata: Path) -> typing.List[CSVRecord]:
     "read in the dataset csv"
     records = []
@@ -210,6 +275,7 @@ def collate_fn(recordings: typing.List[Recording]):
     ys = [r.transcript for r in recordings]
     ys_original = [r.original_transcript for r in recordings]
 
+    # pad audio
     xs = [el.permute(1, 0) for el in xs]
     xs = rnn.pad_sequence(xs, batch_first=True)  # type: ignore
     xs = xs.permute(0, 2, 1)  # type: ignore

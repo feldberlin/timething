@@ -3,7 +3,7 @@ from pathlib import Path
 import click
 
 from timething import align as timething_align
-from timething import cutter, dataset, job, text, utils, llm  # type: ignore
+from timething import cutter, dataset, job, llm, text, utils  # type: ignore
 
 
 @click.group()
@@ -66,7 +66,7 @@ def cli():
     show_default=True,
     help="Offline mode",
 )
-def align(
+def align_short(
     language: str,
     metadata: str,
     alignments_dir: str,
@@ -76,12 +76,17 @@ def align(
     k_shingles: int,
     offline: bool,
 ):
-    """Align text transcripts with audio.
+    """Align text transcripts with short audio.
 
     You provide the audio files, as well as a text file with the complete text
     transcripts. Timething will output a list of time-codes for each word and
     character that indicate when this word or letter was spoken in the audio
     you provided.
+
+    Audio files should be short enough to be processed in a single batch.
+    Processing length depends on amount of memory you have available on your
+    GPU or main memory. In practice you may want to keep snippets under 10 to
+    20 seconds.
     """
 
     # retrieve the config for the given language
@@ -107,6 +112,122 @@ def align(
     # go
     click.echo("starting aligment...")
     j.run()
+
+
+@cli.command()
+@click.option(
+    "--language",
+    default="english",
+    show_default=True,
+    help="Key in timething/models.yaml.",
+)
+@click.option(
+    "--audio-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="Full path to audio file.",
+)
+@click.option(
+    "--transcript-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="Full path to transcription text file.",
+)
+@click.option(
+    "--alignments-dir",
+    required=True,
+    type=click.Path(exists=True),
+    help="Dir to write results to.",
+)
+@click.option(
+    "--batch-size",
+    required=True,
+    type=int,
+    help="Number of examples per batch",
+)
+@click.option(
+    "--n-workers",
+    required=True,
+    type=int,
+    help="Number of worker processes to use",
+)
+@click.option(
+    "--use-gpu",
+    type=bool,
+    default=True,
+    show_default=True,
+    help="Use the gpu, if we have one",
+)
+@click.option(
+    "--k-shingles",
+    type=int,
+    default=5,
+    show_default=True,
+    help="Number of shingles to use for the partition score",
+)
+@click.option(
+    "--seconds-per-window",
+    type=int,
+    default=10,
+    show_default=True,
+    help="Number of seconds to cut the track into before feeding to the model",
+)
+@click.option(
+    "--offline",
+    type=bool,
+    default=False,
+    show_default=True,
+    help="Offline mode",
+)
+def align_long(
+    language: str,
+    audio_file: Path,
+    transcript_file: Path,
+    alignments_dir: str,
+    batch_size: int,
+    n_workers: int,
+    use_gpu: bool,
+    k_shingles: int,
+    seconds_per_window: int,
+    offline: bool,
+):
+    """Align text transcripts with long audio.
+
+    You provide a single long audio file, as well as a text file with the
+    complete text transcript. Timething will output a list of time-codes for
+    each word and character that indicate when this word or letter was spoken
+    in the audio you provided.
+
+    """
+
+    # retrieve the config for the given language
+    cfg = utils.load_config(language, k_shingles, local_files_only=offline)
+
+    # read in the transcript
+    with open(transcript_file, "r") as f:
+        transcript = f.read()
+        transcript = " ".join(transcript.lower().splitlines())
+
+    # construct the dataset
+    ds = dataset.WindowedTrackDataset(
+        Path(audio_file),
+        Path(audio_file).suffix[1:],
+        transcript,
+        seconds_per_window * 1000,
+        seconds_per_window * 1000,
+        16000,
+    )
+
+    click.echo("setting up aligner...")
+    j = job.LongTrackJob(cfg, ds, batch_size=batch_size, n_workers=n_workers)
+
+    click.echo("starting aligment...")
+    alignment = j.run()
+
+    click.echo("writing aligment...")
+    utils.write_alignment(
+        Path(alignments_dir), Path(audio_file).stem, alignment
+    )
 
 
 @cli.command()

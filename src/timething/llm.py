@@ -1,9 +1,4 @@
-import os
-
 import openai
-
-from timething import text
-
 
 podcast_prompt = """
 You are PodcastTranscriptCleanerGPT, a helpful tool for cleaning up
