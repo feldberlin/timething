@@ -1,0 +1,9 @@
+black
+flake8
+hypothesis
+ipykernel
+ipython
+isort
+matplotlib
+mypy
+pytest

@@ -97,7 +97,7 @@ class SpeechDataset(Dataset):
         record = self.records[idx]
 
         # read in audio
-        audio, sample_rate = torchaudio.load(record.file)
+        audio, sample_rate = torchaudio.load(record.file, format="mp3")
 
         # resample, if needed
         if self.resample(sample_rate):

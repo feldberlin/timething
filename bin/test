@@ -4,6 +4,7 @@
 
 set -eo pipefail
 
+source bin/apple-silicon.sh
 mypy .
-bin/lint
-python -m pytest -s -m "not integration" --disable-warnings "$@"
+flake8 --statistics
+pytest -s -m "not integration and not manual" --disable-warnings "$@"
