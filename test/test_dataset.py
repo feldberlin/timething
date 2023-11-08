@@ -42,11 +42,16 @@ def test_dataset_with_alignments():
     assert got == want
 
 
-def test_windowed_track():
-    w = dataset.WindowedTrack(
-        helper.fixtures / "audio" / "keanu.mp3", "mp3", 1000, 500
+def test_windowed_track_dataset():
+    w = dataset.WindowedTrackDataset(
+        helper.fixtures / "audio" / "keanu.mp3",
+        "mp3",
+        "keanu transcript",
+        1000,
+        500,
     )
 
     assert len(w) == 3143
     assert w.sample_rate == 48000
-    assert w[0].shape == (1, 48000)
+    assert w[0].audio.shape == (1, 48000)
+    assert w.transcript == "keanu transcript"

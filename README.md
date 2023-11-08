@@ -25,6 +25,29 @@ pip install timething
 
 ## Aligning recordings and transcripts
 
+### Long form alignment for media content
+
+There are many cases where you might want to align long audio content with
+a corresponding transcript. For example you might want to align a podcast with
+its transcription. The episode might be a few hours long, and the
+transcription is given by the podcaster. In another case you might want to
+align an audio book with it's written text.
+
+```
+timething align-long \
+    --audio-file fixtures/audio/keanu.mp3 \
+    --transcript-file fixtures/keanu.cleaned.txt \
+    --alignments-dir aligned \
+    --batch-size 10 \
+    --n-workers 5
+```
+
+### Short form alignment for machine learning
+
+Timething can align a dataset of utterance level audio snippets with their
+text transcriptions. This is particularly useful in a machine learning
+setting, where Timething can be used to clean up datasets.
+
 Timething currently expects to find a folder containing one or more chapters
 in the following form:
 
@@ -53,13 +76,13 @@ audio/chapter03.mp3|The transcript for chapter03 on a single line here
 You can now run Timething on your CPU or GPU, for example:
 
 ```bash
-timething align --metadata text.csv --alignments-dir aligned
+timething align-short --metadata text.csv --alignments-dir aligned
 ```
 
 You can also specify more options, e.g.:
 
 ```bash
-timething align \
+timething align-short \
   --language german \
   --metadata text.csv \
   --alignments-dir aligned \
@@ -68,6 +91,8 @@ timething align \
 ```
 
 Run `timething --help` for a full description.
+
+### Alignment results
 
 Results will be written into the given folder, e.g. `aligned`. They will be
 written into a single json file named after each audio id. Each file will

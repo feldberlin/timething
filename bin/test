@@ -6,4 +6,4 @@ set -eo pipefail
 
 mypy .
 bin/lint
-python -m pytest -m "not integration" --disable-warnings "$@"
+python -m pytest -s -m "not integration" --disable-warnings "$@"

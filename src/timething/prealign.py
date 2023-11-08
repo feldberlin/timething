@@ -5,13 +5,18 @@ import torch
 
 
 def decode_best(logprobs, vocab, delimiter="|"):
-    "Argmax decoding of P(char | audio)."
+    "Argmax decoding of P(char | audio). Accepts a B, T Tensor"
 
+    transcripts = []
     d = {v: k for (k, v) in vocab.items()}
     x = torch.argmax(logprobs, dim=2)
-    tokens = [d[code.item()] for code in x.squeeze()]
-    transcript = "".join(c for c, _ in itertools.groupby(tokens))
-    return " ".join(transcript.replace(d[0], "").split("|"))
+    for i in range(x.shape[0]):  # loop over batch dimension
+        tokens = [d[code.item()] for code in x[i].squeeze()]
+        transcript = "".join(c for c, _ in itertools.groupby(tokens))
+        transcript = " ".join(transcript.replace(d[0], "").split("|"))
+        transcripts.append(transcript)
+
+    return transcripts
 
 
 def windows(text: str, n_chars: int) -> typing.List[str]:

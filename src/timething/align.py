@@ -173,7 +173,7 @@ class Aligner:
             cfg.k_shingles,
         )
 
-    def align(self, batch) -> typing.List[Alignment]:
+    def align_batch(self, batch) -> typing.List[Alignment]:
         """
         Align the audio and the transcripts in the batch. Returns a list of
         aligments, one per example. CTC probablities are processed in a single
@@ -182,9 +182,17 @@ class Aligner:
 
         xs, ys, ys_original, ids = batch
         log_probs = self.logp(xs)
+        return self.align(log_probs, ys, ys_original, ids)
+
+    def align(self, log_probs, ys, ys_original, ids) -> typing.List[Alignment]:
+        """
+        Align the audio and the transcripts in the batch. Returns a list of
+        aligments, one per example. CTC probablities are processed in a single
+        batch, on the gpu. Backtracking is performed in a loop on the CPU.
+        """
+
         alignments = []
         for i in range(len(ys)):
-            x = xs[i]
             y = ys[i]
             id = ids[i]
             y_original = ys_original[i]
@@ -199,7 +207,7 @@ class Aligner:
             words_cleaned = merge_words(chars_cleaned)
             words = merge_words(chars, separator=" ")
             n_model_frames = trellis.shape[0] - 1
-            n_audio_samples = x.shape[1]
+            n_audio_samples = log_prob.shape[1]
             alignment = Alignment(
                 id,
                 log_probs,
@@ -261,7 +269,7 @@ def build_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)
     num_tokens = len(tokens)
 
-    # Trellis has extra diemsions for both time axis and tokens.
+    # Trellis has extra dimensions for both time axis and tokens.
     # The extra dim for tokens represents <SoS> (start-of-sentence)
     # The extra dim for time axis is for simplification of the code.
     trellis = torch.full((num_frame + 1, num_tokens + 1), -float("inf"))
@@ -274,6 +282,32 @@ def build_trellis(emission, tokens, blank_id=0):
             trellis[t, :-1] + emission[t, tokens],
         )
     return trellis
+
+
+def dp_table(log_probs, tokens, blank_id=0):
+    num_frames = log_probs.size(1)
+    num_tokens = len(tokens)
+
+    # init with log(0)
+    table = torch.full((num_tokens, num_frames), -float("inf"))
+
+    # base case
+    table[0, 0] = log_probs[tokens[0], 0]
+
+    # compute the first token entries across all frames. avoids index errors
+    table[0, 1:] = table[0, 0] + torch.cumsum(log_probs[blank_id, 1:])
+
+    # fill in each frame starting from the second frame and token. the first
+    # token is already filled in. the first frame only includes the base case
+    for f in range(1, num_frames):
+        table[1:, f] = torch.maximum(
+            # repeat with blank
+            table[1:, f - 1] + log_probs[blank_id, f],
+            # change to next token
+            table[:-1, f - 1] + log_probs[tokens[1:], f],
+        )
+
+    return table
 
 
 def backtrack(trellis, emission, tokens, blank_id=0):

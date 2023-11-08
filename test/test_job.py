@@ -60,3 +60,36 @@ def test_job():
             "in",
             "Belgrade.",
         ]
+
+
+@pytest.mark.integration
+def test_long_audio_job():
+    cfg = utils.load_config("english")
+    keanu_audio = helper.fixtures / "audio" / "keanu.mp3"
+    with open(helper.fixtures / "keanu.cleaned.txt", "r") as f:
+        keanu_transcript = f.read()
+
+    # set up non overlapping dataset
+    ms_per_sample = 500
+    hopsize_ms = ms_per_sample
+    ds = dataset.WindowedTrackDataset(
+        keanu_audio,
+        "mp3",
+        keanu_transcript,
+        ms_per_sample,
+        hopsize_ms,
+        16000,
+    )
+
+    print("setting up alignment job...")
+    j = job.LongTrackJob(
+        cfg,
+        ds,
+        batch_size=1,
+        n_workers=1,
+    )
+
+    # align
+    results = j.run()
+    print(results)
+    assert len(results) == 1

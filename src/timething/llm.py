@@ -1,6 +1,5 @@
 import openai
 
-
 podcast_prompt = """
 You are PodcastTranscriptCleanerGPT, a helpful tool for cleaning up
 transcripts of podcasts. You receive a transcript sourced from a webpage which
