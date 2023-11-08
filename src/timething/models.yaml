@@ -14,13 +14,13 @@ dutch:
   model: "jonatasgrosman/wav2vec2-large-xlsr-53-dutch"
   pin: "38c2de1e4ae9eb00a9305e3c7ac36a3a3c46ec1f"
   sampling_rate: 16000
-  language: "en"
+  language: "nl"
 
 polish:
   model: "jonatasgrosman/wav2vec2-large-xlsr-53-polish"
   pin: "1c015c0ebb551cf81f9e1198edbe39bce2ee675d"
   sampling_rate: 16000
-  language: "nl"
+  language: "pl"
 
 italian:
   model: "jonatasgrosman/wav2vec2-large-xlsr-53-italian"
