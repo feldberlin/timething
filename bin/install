@@ -5,7 +5,6 @@
 set -eou pipefail
 
 conda env create --file environment.yml
-conda activate timething
 conda install ffmpeg=4.3 -c conda-forge
 pip install \
   black \
