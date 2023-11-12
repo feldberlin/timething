@@ -1,3 +1,4 @@
 dist/
 timething.egg-info/
 .hypothesis
+.direnv/

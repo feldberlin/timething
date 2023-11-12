@@ -89,7 +89,7 @@ def test_dataset_recut():
 
         # audio one exists
         one_path = tmp / "audio" / "one-0.mp3"
-        one = torchaudio.info(one_path)
+        one = torchaudio.info(str(one_path))
         assert one.sample_rate == 44100
         assert one.num_frames > 6000
         assert one.num_channels == 2

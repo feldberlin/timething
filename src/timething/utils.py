@@ -12,6 +12,7 @@ import yaml  # type: ignore
 import timething
 from timething import align  # type: ignore
 
+
 # yaml file containing all of the models
 MODELS_YAML = "models.yaml"
 
@@ -59,7 +60,7 @@ def load_audio(content: bytes, format: str):
         f.write(content)
         f.flush()
 
-    audio, sr = torchaudio.load(path, format=format)
+    audio, sr = torchaudio.load(str(path), format=format)
     os.unlink(path)
     return audio, sr
 

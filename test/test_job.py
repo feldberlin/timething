@@ -62,7 +62,7 @@ def test_job():
         ]
 
 
-@pytest.mark.integration
+@pytest.mark.manual
 def test_long_audio_job():
     cfg = utils.load_config("english")
     keanu_audio = helper.fixtures / "audio" / "keanu.mp3"

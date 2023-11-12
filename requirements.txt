@@ -1,0 +1,10 @@
+click
+datasets
+num2words
+numpy
+openai
+pyyaml
+torch
+tokenizers
+torchaudio
+transformers===4.6.0
